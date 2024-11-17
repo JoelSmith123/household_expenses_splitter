@@ -32,7 +32,7 @@ Widget startScreen() {
             ),
             onPressed: () {
               appState.updateHousematesIncome();
-              appState.navigateToHouseholdIncomeSummary();
+              appState.navigateToPage('household income summary');
             },
           ),
         ),

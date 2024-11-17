@@ -21,10 +21,28 @@ Widget menuScreen() {
               ),
             ),
             onPressed: () {
-              appState.navigateToConfig();
+              appState.navigateToPage('config');
             },
           ),
-          // Add more buttons here if needed
+          const SizedBox(height: 16.0),
+          CupertinoButton(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            color: CupertinoColors.activeBlue,
+            borderRadius: BorderRadius.circular(8.0),
+            child: const Text(
+              'Exceptions',
+              style: TextStyle(
+                fontSize: 16.0,
+                color: CupertinoColors.white,
+              ),
+            ),
+            onPressed: () {
+              appState.navigateToPage('exceptions');
+            },
+          ),
+
+          // light mode/dark mode switch
           const Spacer(),
           Padding(
             padding: const EdgeInsets.all(0.0),

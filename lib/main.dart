@@ -4,6 +4,7 @@ import 'providers/app_state.dart';
 
 import 'menu_screen.dart';
 import 'config_screen.dart';
+import 'exceptions_screen.dart';
 import 'start_screen.dart';
 import 'household_income_summary_screen.dart';
 import 'expenses_screen.dart';
@@ -57,7 +58,8 @@ class MyHomePage extends StatelessWidget {
                 icon = CupertinoIcons.bars;
               } else if (appState.currentPage == 'menu') {
                 icon = CupertinoIcons.clear;
-              } else if (appState.currentPage == 'config') {
+              } else if (appState.currentPage == 'config' ||
+                  appState.currentPage == 'exceptions') {
                 icon = CupertinoIcons.back;
               } else {
                 icon = CupertinoIcons.clear;
@@ -82,6 +84,7 @@ class MyHomePage extends StatelessWidget {
                 if (appState.currentPage == 'menu') menuScreen(),
                 if (appState.currentPage == 'start') startScreen(),
                 if (appState.currentPage == 'config') configScreen(),
+                if (appState.currentPage == 'exceptions') exceptionsScreen(),
                 if (appState.currentPage == 'expenses') expensesScreen(),
                 if (appState.currentPage == 'summary') summaryScreen(),
                 if (appState.currentPage == 'household income summary')

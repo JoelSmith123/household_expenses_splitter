@@ -29,7 +29,7 @@ Widget householdIncomeSummaryScreen() {
               style: TextStyle(color: CupertinoColors.white),
             ),
             onPressed: () {
-              appState.navigateToExpenses();
+              appState.navigateToPage('expenses');
             },
           ),
         ),

@@ -32,7 +32,7 @@ Widget expensesScreen() {
             ),
             onPressed: () {
               appState.updateHousematesShare();
-              appState.navigateToSummary();
+              appState.navigateToPage('summary');
             },
           ),
         ),

@@ -1,5 +1,15 @@
 import 'package:flutter/cupertino.dart';
 
+class ExceptionSets {
+  Set housematesWithExceptions;
+  Set categoriesWithExceptions;
+
+  ExceptionSets({
+    required this.housematesWithExceptions,
+    required this.categoriesWithExceptions,
+  });
+}
+
 class AppState extends ChangeNotifier {
   // constructor
   AppState() {
@@ -9,6 +19,10 @@ class AppState extends ChangeNotifier {
   // controllers
   List<TextEditingController> housematesNetIncomeControllers = [];
   List<TextEditingController> expensesAmountControllers = [];
+  ExceptionSets exceptionSets = ExceptionSets(
+    housematesWithExceptions: {},
+    categoriesWithExceptions: {},
+  );
 
   // initialize controllers
   void _initializeControllers() {
@@ -16,6 +30,8 @@ class AppState extends ChangeNotifier {
         List.generate(housemates.length, (index) => TextEditingController());
     expensesAmountControllers =
         List.generate(expenses.length, (index) => TextEditingController());
+
+    exceptionSets = initializeExceptionSets();
   }
 
   // dispose controllers
@@ -77,11 +93,61 @@ class AppState extends ChangeNotifier {
     {
       'name': 'Groceries',
       'amount': 0,
+    },
+    {
+      'name': 'Pets',
+      'amount': 0,
     }
+  ];
+  List exceptions = [
+    {'name': 'Jay', 'category': 'ALL', 'type': 'REDUCED', 'percent': 50},
+    {
+      'name': 'Isabel',
+      'category': 'Electricity',
+      'type': 'REDUCED',
+      'percent': 33.33
+    },
+    {'name': 'Isabel', 'category': 'Pets', 'type': 'EXEMPT'}
   ];
   num totalHouseholdIncome = 0;
   String currentPage = 'start';
   String previousPage = '';
+  String sortCriteria = 'name';
+
+  void updateSortCriteria(String newValue) {
+    sortCriteria = newValue;
+    notifyListeners();
+  }
+
+  Set returnExceptionSetForSortCriteria() {
+    if (sortCriteria == 'name') {
+      return exceptionSets.housematesWithExceptions;
+    } else if (sortCriteria == 'category') {
+      return exceptionSets.categoriesWithExceptions;
+    }
+    return {};
+  }
+
+  List returnExceptionsForSortCriteria(name) {
+    return exceptions
+        .where((exception) => exception[sortCriteria] == name)
+        .toList();
+  }
+
+  ExceptionSets initializeExceptionSets() {
+    Set housematesWithExceptions = exceptionSets.housematesWithExceptions;
+    Set categoriesWithExceptions = exceptionSets.categoriesWithExceptions;
+
+    for (var exception in exceptions) {
+      housematesWithExceptions.add(exception['name']);
+      categoriesWithExceptions.add(exception['category']);
+    }
+
+    return ExceptionSets(
+      housematesWithExceptions: housematesWithExceptions,
+      categoriesWithExceptions: categoriesWithExceptions,
+    );
+  }
 
   // core calculation methods
   void updateHousematesIncome() {
@@ -134,7 +200,7 @@ class AppState extends ChangeNotifier {
       currentPage = 'menu';
     } else if (currentPage == 'menu' && icon == CupertinoIcons.clear) {
       currentPage = previousPage;
-    } else if (currentPage == 'config') {
+    } else if (currentPage == 'config' || currentPage == 'exceptions') {
       currentPage = 'menu';
     } else {
       icon = CupertinoIcons.clear;
@@ -142,23 +208,8 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
-  void navigateToConfig() {
-    currentPage = 'config';
-    notifyListeners();
-  }
-
-  void navigateToHouseholdIncomeSummary() {
-    currentPage = 'household income summary';
-    notifyListeners();
-  }
-
-  void navigateToExpenses() {
-    currentPage = 'expenses';
-    notifyListeners();
-  }
-
-  void navigateToSummary() {
-    currentPage = 'summary';
+  void navigateToPage(String page) {
+    currentPage = page;
     notifyListeners();
   }
 }

@@ -14,7 +14,7 @@ Widget configScreen() {
               Text(housemate['name']),
               CupertinoButton(
                 padding: EdgeInsets.zero,
-                child: Icon(CupertinoIcons.delete),
+                child: const Icon(CupertinoIcons.delete),
                 onPressed: () {
                   appState.housemates.remove(housemate);
                 },
@@ -44,9 +44,9 @@ Widget configScreen() {
             ),
           ],
         ),
-        Padding(
-          padding: const EdgeInsets.only(top: 60.0),
-          child: const Text('Customize Expenses'),
+        const Padding(
+          padding: EdgeInsets.only(top: 60.0),
+          child: Text('Customize Expenses'),
         ),
         for (var expense in appState.expenses)
           Row(
@@ -54,7 +54,7 @@ Widget configScreen() {
               Text(expense['name']),
               CupertinoButton(
                 padding: EdgeInsets.zero,
-                child: Icon(CupertinoIcons.delete),
+                child: const Icon(CupertinoIcons.delete),
                 onPressed: () {
                   appState.expenses.remove(expense);
                 },
