@@ -60,6 +60,13 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
+  // edit mode for exceptions screen
+  bool exceptionsEditMode = false;
+  void toggleExceptionsEditMode() {
+    exceptionsEditMode = !exceptionsEditMode;
+    notifyListeners();
+  }
+
   // core functionality state
   List housemates = [
     {
@@ -100,7 +107,12 @@ class AppState extends ChangeNotifier {
     }
   ];
   List exceptions = [
-    {'name': 'Jay', 'category': 'ALL', 'type': 'REDUCED', 'percent': 50},
+    {
+      'name': 'Jay',
+      'category': 'All Expenses',
+      'type': 'REDUCED',
+      'percent': 50
+    },
     {
       'name': 'Isabel',
       'category': 'Electricity',
