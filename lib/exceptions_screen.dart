@@ -5,6 +5,8 @@ import 'providers/app_state.dart';
 Widget exceptionsScreen() {
   return Consumer<AppState>(builder: (context, appState, child) {
     List exceptions = appState.exceptions;
+    List exceptionNamesAndCategories =
+        appState.returnExceptionSetForSortCriteria().toList();
 
     // Sort the exceptions based on the selected criteria
     exceptions.sort((a, b) {
@@ -45,11 +47,9 @@ Widget exceptionsScreen() {
             ),
           ),
           Column(
-            // mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
               // The list of exceptions
-              for (var name
-                  in appState.returnExceptionSetForSortCriteria()) ...[
+              for (var name in exceptionNamesAndCategories) ...[
                 Row(
                   children: <Widget>[
                     Padding(
@@ -68,10 +68,79 @@ Widget exceptionsScreen() {
                         Expanded(
                           child: Padding(
                             padding: const EdgeInsets.only(top: 10.0),
-                            child: Text(
-                              exception['category'] == 'All Expenses'
-                                  ? '${exception['name']} pays ${exception['percent'].toStringAsFixed(2)}% of all their household expenses.'
-                                  : '${exception['name']} pays ${exception['percent'].toStringAsFixed(2)}% of their normal ${exception['category']} charge.',
+                            child: Wrap(
+                              children: [
+                                appState.exceptionsEditMode
+                                    ? CupertinoButton(
+                                        padding: EdgeInsets.zero,
+                                        onPressed: () {
+                                          showCupertinoModalPopup(
+                                            context: context,
+                                            builder: (BuildContext context) {
+                                              return Container(
+                                                height: 216.0,
+                                                color: CupertinoColors
+                                                    .systemBackground
+                                                    .resolveFrom(context),
+                                                padding: const EdgeInsets.only(
+                                                    top: 6.0),
+                                                // The Bottom margin is provided to align the popup above the system navigation bar.
+                                                margin: EdgeInsets.only(
+                                                  bottom: MediaQuery.of(context)
+                                                      .viewInsets
+                                                      .bottom,
+                                                ),
+                                                child: SafeArea(
+                                                  top: false,
+                                                  child: CupertinoPicker(
+                                                    magnification: 1.22,
+                                                    squeeze: 1.2,
+                                                    useMagnifier: true,
+                                                    itemExtent: 32.0,
+                                                    scrollController:
+                                                        FixedExtentScrollController(
+                                                      initialItem: appState
+                                                          .returnInitialSelectedName(
+                                                              exception,
+                                                              exceptionNamesAndCategories),
+                                                    ),
+                                                    onSelectedItemChanged:
+                                                        (int selectedItemInd) {
+                                                      appState.updateTempSelectedName(
+                                                          exception,
+                                                          exceptionNamesAndCategories[
+                                                              selectedItemInd]);
+                                                    },
+                                                    children: <Widget>[
+                                                      for (String value
+                                                          in exceptionNamesAndCategories)
+                                                        Center(
+                                                            child: Text(value))
+                                                    ],
+                                                  ),
+                                                ),
+                                              );
+                                            },
+                                          );
+                                        },
+                                        // the text of the button
+                                        child: Text(
+                                          appState.returnTempSelectedName(
+                                              exception),
+                                          // style: const TextStyle(
+                                          //   color: CupertinoColors.activeBlue,
+                                          //   decoration:
+                                          //       TextDecoration.underline,
+                                          // ),
+                                        ),
+                                      )
+                                    : Text(exception['name']),
+                                Text(
+                                  exception['category'] == 'All Expenses'
+                                      ? ' pays ${exception['percent'].toStringAsFixed(2)}% of all their household expenses.'
+                                      : ' pays ${exception['percent'].toStringAsFixed(2)}% of their normal ${exception['category']} charge.',
+                                ),
+                              ],
                             ),
                           ),
                         )
@@ -143,7 +212,7 @@ Widget exceptionsScreen() {
                   ),
                 ),
                 onPressed: () {
-                  appState.toggleExceptionsEditMode();
+                  appState.handleExceptionsEditSaveBtnPressed();
                 },
               ),
             ),

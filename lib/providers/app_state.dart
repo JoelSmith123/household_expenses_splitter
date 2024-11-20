@@ -60,6 +60,19 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
+  void handleExceptionsEditSaveBtnPressed() {
+    toggleExceptionsEditMode();
+
+    if (exceptionsEditMode) {
+      unsavedExceptions = exceptions;
+    } else {
+      exceptions = unsavedExceptions;
+      unsavedExceptions = [];
+    }
+
+    notifyListeners();
+  }
+
   // edit mode for exceptions screen
   bool exceptionsEditMode = false;
   void toggleExceptionsEditMode() {
@@ -108,24 +121,51 @@ class AppState extends ChangeNotifier {
   ];
   List exceptions = [
     {
+      'id': UniqueKey().hashCode,
       'name': 'Jay',
       'category': 'All Expenses',
       'type': 'REDUCED',
       'percent': 50
     },
     {
+      'id': UniqueKey().hashCode,
       'name': 'Isabel',
       'category': 'Electricity',
       'type': 'REDUCED',
       'percent': 33.33
     },
-    {'name': 'Isabel', 'category': 'Pets', 'type': 'EXEMPT'}
+    {
+      'id': UniqueKey().hashCode,
+      'name': 'Isabel',
+      'category': 'Pets',
+      'type': 'EXEMPT'
+    }
   ];
+  List unsavedExceptions = [];
   num totalHouseholdIncome = 0;
   String currentPage = 'start';
   String previousPage = '';
-  String sortCriteria = 'name';
 
+  void updateTempSelectedName(exception, String name) {
+    exception['name'] = name;
+    int exceptionIndex = unsavedExceptions
+        .indexWhere((tempEx) => tempEx['id'] == exception['id']);
+    unsavedExceptions[exceptionIndex]['name'] = name;
+    notifyListeners();
+  }
+
+  int returnInitialSelectedName(exception, exceptionNamesAndCategories) {
+    // TO-DO: update exceptionNamesAndCategories to use id identifiers instead of name
+    return exceptionNamesAndCategories.indexOf(exception['name']);
+  }
+
+  String returnTempSelectedName(exception) {
+    int exceptionIndex = unsavedExceptions
+        .indexWhere((tempEx) => tempEx['id'] == exception['id']);
+    return unsavedExceptions[exceptionIndex]['name'];
+  }
+
+  String sortCriteria = 'name';
   void updateSortCriteria(String newValue) {
     sortCriteria = newValue;
     notifyListeners();
