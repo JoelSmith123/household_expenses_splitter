@@ -146,23 +146,23 @@ class AppState extends ChangeNotifier {
   String currentPage = 'start';
   String previousPage = '';
 
-  void updateTempSelectedName(exception, String name) {
-    exception['name'] = name;
+  void updateTempSelectedItem(exception, String name, String type) {
+    exception[type] = name;
     int exceptionIndex = unsavedExceptions
         .indexWhere((tempEx) => tempEx['id'] == exception['id']);
-    unsavedExceptions[exceptionIndex]['name'] = name;
+    unsavedExceptions[exceptionIndex][type] = name;
     notifyListeners();
   }
 
-  int returnInitialSelectedName(exception, exceptionNamesAndCategories) {
+  int returnInitialSelectedItem(exception, exceptionNamesAndCategories, type) {
     // TO-DO: update exceptionNamesAndCategories to use id identifiers instead of name
-    return exceptionNamesAndCategories.indexOf(exception['name']);
+    return exceptionNamesAndCategories.indexOf(exception[type]);
   }
 
-  String returnTempSelectedName(exception) {
+  String returnTempSelectedNameOrCategory(exception, type) {
     int exceptionIndex = unsavedExceptions
         .indexWhere((tempEx) => tempEx['id'] == exception['id']);
-    return unsavedExceptions[exceptionIndex]['name'];
+    return unsavedExceptions[exceptionIndex][type];
   }
 
   String sortCriteria = 'name';

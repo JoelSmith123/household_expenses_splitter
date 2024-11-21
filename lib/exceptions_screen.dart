@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/gestures.dart';
 import 'package:provider/provider.dart';
 import 'providers/app_state.dart';
+import 'exceptions_category_dropdown.dart';
 
 Widget exceptionsScreen() {
   return Consumer<AppState>(builder: (context, appState, child) {
@@ -76,70 +76,16 @@ Widget exceptionsScreen() {
                               TextSpan(
                                 children: [
                                   appState.exceptionsEditMode
-                                      ? TextSpan(
-                                          text: appState.returnTempSelectedName(
-                                              exception),
-                                          style: const TextStyle(
-                                            color: CupertinoColors.activeBlue,
-                                            decoration:
-                                                TextDecoration.underline,
-                                          ),
-                                          recognizer: TapGestureRecognizer()
-                                            ..onTap = () {
-                                              showCupertinoModalPopup(
-                                                context: context,
-                                                builder:
-                                                    (BuildContext context) {
-                                                  return Container(
-                                                    height: 216.0,
-                                                    color: CupertinoColors
-                                                        .systemBackground
-                                                        .resolveFrom(context),
-                                                    padding:
-                                                        const EdgeInsets.only(
-                                                            top: 6.0),
-                                                    margin: EdgeInsets.only(
-                                                      bottom:
-                                                          MediaQuery.of(context)
-                                                              .viewInsets
-                                                              .bottom,
-                                                    ),
-                                                    child: SafeArea(
-                                                      top: false,
-                                                      child: CupertinoPicker(
-                                                        magnification: 1.22,
-                                                        squeeze: 1.2,
-                                                        useMagnifier: true,
-                                                        itemExtent: 32.0,
-                                                        scrollController:
-                                                            FixedExtentScrollController(
-                                                          initialItem: appState
-                                                              .returnInitialSelectedName(
-                                                                  exception,
-                                                                  exceptionNamesAndCategories),
-                                                        ),
-                                                        onSelectedItemChanged:
-                                                            (int
-                                                                selectedItemInd) {
-                                                          appState.updateTempSelectedName(
-                                                              exception,
-                                                              exceptionNamesAndCategories[
-                                                                  selectedItemInd]);
-                                                        },
-                                                        children: <Widget>[
-                                                          for (String value
-                                                              in exceptionNamesAndCategories)
-                                                            Center(
-                                                                child: Text(
-                                                                    value)),
-                                                        ],
-                                                      ),
-                                                    ),
-                                                  );
-                                                },
-                                              );
-                                            },
-                                        )
+                                      ?
+                                      // the inline link for category dropdown
+                                      exceptionsCategoryDropdown(
+                                          appState,
+                                          context,
+                                          exception,
+                                          appState.exceptionSets
+                                              .housematesWithExceptions
+                                              .toList(),
+                                          'name')
                                       : TextSpan(text: exception['name']),
                                   TextSpan(
                                     style: const TextStyle(
@@ -155,13 +101,48 @@ Widget exceptionsScreen() {
                           )
                         else if (exception['type'] == 'EXEMPT')
                           Expanded(
-                            child: Padding(
-                              padding: const EdgeInsets.only(top: 10.0),
-                              child: Text(
-                                '${exception['name']} is exempt from their ${exception['category']} charge.',
+                            child: Text.rich(
+                              textAlign: TextAlign.start,
+                              TextSpan(
+                                children: [
+                                  appState.exceptionsEditMode
+                                      ?
+                                      // the inline link for category dropdown
+                                      exceptionsCategoryDropdown(
+                                          appState,
+                                          context,
+                                          exception,
+                                          appState.exceptionSets
+                                              .housematesWithExceptions
+                                              .toList(),
+                                          'name')
+                                      : TextSpan(text: exception['name']),
+                                  const TextSpan(
+                                      style: TextStyle(
+                                          color: CupertinoColors.black),
+                                      text: ' is exempt from their '),
+                                  appState.exceptionsEditMode
+                                      ?
+                                      // the inline link for category dropdown
+                                      exceptionsCategoryDropdown(
+                                          appState,
+                                          context,
+                                          exception,
+                                          appState.exceptionSets
+                                              .categoriesWithExceptions
+                                              .toList(),
+                                          'category')
+                                      : TextSpan(text: exception['category']),
+                                  const TextSpan(
+                                      style: TextStyle(
+                                          color: CupertinoColors.black),
+                                      text: ' charge.'),
+                                ],
                               ),
                             ),
                           ),
+
+                        // delete button for each exception
                         Center(
                           child: appState.exceptionsEditMode
                               ? SizedBox(
