@@ -86,14 +86,32 @@ Widget exceptionsScreen() {
                                               .toList(),
                                           'name')
                                       : TextSpan(text: exception['name']),
-                                  TextSpan(
-                                    style: const TextStyle(
-                                        color: CupertinoColors.black),
-                                    text: exception['category'] ==
-                                            'All Expenses'
-                                        ? ' pays ${exception['percent'].toStringAsFixed(2)}% of all their household expenses.'
-                                        : ' pays ${exception['percent'].toStringAsFixed(2)}% of their normal ${exception['category']} charge.',
-                                  ),
+                                  TextSpan(children: [
+                                    exception['category'] == 'All Expenses'
+                                        // TO-DO: handle All Expenses scenario to be editable like other categories
+                                        ? TextSpan(
+                                            text:
+                                                ' pays ${exception['percent'].toStringAsFixed(2)}% of all their household expenses.')
+                                        : TextSpan(
+                                            text:
+                                                ' pays ${exception['percent'].toStringAsFixed(2)}% of their normal '),
+                                    appState.exceptionsEditMode
+                                        ?
+                                        // the inline link for category dropdown
+                                        exceptionsCategoryDropdown(
+                                            appState,
+                                            context,
+                                            exception,
+                                            appState.exceptionSets
+                                                .categoriesWithExceptions
+                                                .toList(),
+                                            'category')
+                                        : TextSpan(text: exception['category']),
+                                    const TextSpan(
+                                        style: TextStyle(
+                                            color: CupertinoColors.black),
+                                        text: ' charge.'),
+                                  ]),
                                 ],
                               ),
                             ),
