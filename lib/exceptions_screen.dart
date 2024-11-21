@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/gestures.dart';
 import 'package:provider/provider.dart';
 import 'providers/app_state.dart';
 
@@ -62,106 +63,124 @@ Widget exceptionsScreen() {
                 ),
                 for (var exception
                     in appState.returnExceptionsForSortCriteria(name))
-                  Row(
-                    children: <Widget>[
-                      if (exception['type'] == 'REDUCED')
-                        Expanded(
-                          child: Padding(
-                            padding: const EdgeInsets.only(top: 10.0),
-                            child: Wrap(
-                              children: [
-                                appState.exceptionsEditMode
-                                    ? CupertinoButton(
-                                        padding: EdgeInsets.zero,
-                                        onPressed: () {
-                                          showCupertinoModalPopup(
-                                            context: context,
-                                            builder: (BuildContext context) {
-                                              return Container(
-                                                height: 216.0,
-                                                color: CupertinoColors
-                                                    .systemBackground
-                                                    .resolveFrom(context),
-                                                padding: const EdgeInsets.only(
-                                                    top: 6.0),
-                                                // The Bottom margin is provided to align the popup above the system navigation bar.
-                                                margin: EdgeInsets.only(
-                                                  bottom: MediaQuery.of(context)
-                                                      .viewInsets
-                                                      .bottom,
-                                                ),
-                                                child: SafeArea(
-                                                  top: false,
-                                                  child: CupertinoPicker(
-                                                    magnification: 1.22,
-                                                    squeeze: 1.2,
-                                                    useMagnifier: true,
-                                                    itemExtent: 32.0,
-                                                    scrollController:
-                                                        FixedExtentScrollController(
-                                                      initialItem: appState
-                                                          .returnInitialSelectedName(
-                                                              exception,
-                                                              exceptionNamesAndCategories),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 10.0),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.baseline,
+                      textBaseline: TextBaseline.alphabetic,
+                      children: <Widget>[
+                        if (exception['type'] == 'REDUCED')
+                          Expanded(
+                            child: Text.rich(
+                              textAlign: TextAlign.start,
+                              TextSpan(
+                                children: [
+                                  appState.exceptionsEditMode
+                                      ? TextSpan(
+                                          text: appState.returnTempSelectedName(
+                                              exception),
+                                          style: const TextStyle(
+                                            color: CupertinoColors.activeBlue,
+                                            decoration:
+                                                TextDecoration.underline,
+                                          ),
+                                          recognizer: TapGestureRecognizer()
+                                            ..onTap = () {
+                                              showCupertinoModalPopup(
+                                                context: context,
+                                                builder:
+                                                    (BuildContext context) {
+                                                  return Container(
+                                                    height: 216.0,
+                                                    color: CupertinoColors
+                                                        .systemBackground
+                                                        .resolveFrom(context),
+                                                    padding:
+                                                        const EdgeInsets.only(
+                                                            top: 6.0),
+                                                    margin: EdgeInsets.only(
+                                                      bottom:
+                                                          MediaQuery.of(context)
+                                                              .viewInsets
+                                                              .bottom,
                                                     ),
-                                                    onSelectedItemChanged:
-                                                        (int selectedItemInd) {
-                                                      appState.updateTempSelectedName(
-                                                          exception,
-                                                          exceptionNamesAndCategories[
-                                                              selectedItemInd]);
-                                                    },
-                                                    children: <Widget>[
-                                                      for (String value
-                                                          in exceptionNamesAndCategories)
-                                                        Center(
-                                                            child: Text(value))
-                                                    ],
-                                                  ),
-                                                ),
+                                                    child: SafeArea(
+                                                      top: false,
+                                                      child: CupertinoPicker(
+                                                        magnification: 1.22,
+                                                        squeeze: 1.2,
+                                                        useMagnifier: true,
+                                                        itemExtent: 32.0,
+                                                        scrollController:
+                                                            FixedExtentScrollController(
+                                                          initialItem: appState
+                                                              .returnInitialSelectedName(
+                                                                  exception,
+                                                                  exceptionNamesAndCategories),
+                                                        ),
+                                                        onSelectedItemChanged:
+                                                            (int
+                                                                selectedItemInd) {
+                                                          appState.updateTempSelectedName(
+                                                              exception,
+                                                              exceptionNamesAndCategories[
+                                                                  selectedItemInd]);
+                                                        },
+                                                        children: <Widget>[
+                                                          for (String value
+                                                              in exceptionNamesAndCategories)
+                                                            Center(
+                                                                child: Text(
+                                                                    value)),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  );
+                                                },
                                               );
                                             },
-                                          );
-                                        },
-                                        // the text of the button
-                                        child: Text(
-                                          appState.returnTempSelectedName(
-                                              exception),
-                                          // style: const TextStyle(
-                                          //   color: CupertinoColors.activeBlue,
-                                          //   decoration:
-                                          //       TextDecoration.underline,
-                                          // ),
-                                        ),
-                                      )
-                                    : Text(exception['name']),
-                                Text(
-                                  exception['category'] == 'All Expenses'
-                                      ? ' pays ${exception['percent'].toStringAsFixed(2)}% of all their household expenses.'
-                                      : ' pays ${exception['percent'].toStringAsFixed(2)}% of their normal ${exception['category']} charge.',
-                                ),
-                              ],
+                                        )
+                                      : TextSpan(text: exception['name']),
+                                  TextSpan(
+                                    style: const TextStyle(
+                                        color: CupertinoColors.black),
+                                    text: exception['category'] ==
+                                            'All Expenses'
+                                        ? ' pays ${exception['percent'].toStringAsFixed(2)}% of all their household expenses.'
+                                        : ' pays ${exception['percent'].toStringAsFixed(2)}% of their normal ${exception['category']} charge.',
+                                  ),
+                                ],
+                              ),
+                            ),
+                          )
+                        else if (exception['type'] == 'EXEMPT')
+                          Expanded(
+                            child: Padding(
+                              padding: const EdgeInsets.only(top: 10.0),
+                              child: Text(
+                                '${exception['name']} is exempt from their ${exception['category']} charge.',
+                              ),
                             ),
                           ),
-                        )
-                      else if (exception['type'] == 'EXEMPT')
-                        Expanded(
-                          child: Padding(
-                            padding: const EdgeInsets.only(top: 10.0),
-                            child: Text(
-                              '${exception['name']} is exempt from their ${exception['category']} charge.',
-                            ),
-                          ),
+                        Center(
+                          child: appState.exceptionsEditMode
+                              ? SizedBox(
+                                  height:
+                                      24.0, // Match icon height for consistent alignment
+                                  width: 24.0,
+                                  child: CupertinoButton(
+                                    padding: EdgeInsets.zero,
+                                    child: const Icon(CupertinoIcons.delete,
+                                        size: 20.0),
+                                    onPressed: () {
+                                      appState.exceptions.remove(exception);
+                                    },
+                                  ),
+                                )
+                              : Container(),
                         ),
-                      if (appState.exceptionsEditMode)
-                        CupertinoButton(
-                          padding: EdgeInsets.zero,
-                          child: const Icon(CupertinoIcons.delete),
-                          onPressed: () {
-                            appState.exceptions.remove(exception);
-                          },
-                        ),
-                    ],
+                      ],
+                    ),
                   ),
               ],
             ],
