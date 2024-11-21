@@ -31,7 +31,7 @@ class AppState extends ChangeNotifier {
     expensesAmountControllers =
         List.generate(expenses.length, (index) => TextEditingController());
 
-    exceptionSets = initializeExceptionSets();
+    initializeExceptionSets();
   }
 
   // dispose controllers
@@ -171,13 +171,13 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
-  Set returnExceptionSetForSortCriteria() {
+  List returnExceptionSetForSortCriteria() {
     if (sortCriteria == 'name') {
-      return exceptionSets.housematesWithExceptions;
+      return exceptionSets.housematesWithExceptions.toList();
     } else if (sortCriteria == 'category') {
-      return exceptionSets.categoriesWithExceptions;
+      return exceptionSets.categoriesWithExceptions.toList();
     }
-    return {};
+    return [];
   }
 
   List returnExceptionsForSortCriteria(name) {
@@ -186,16 +186,31 @@ class AppState extends ChangeNotifier {
         .toList();
   }
 
-  ExceptionSets initializeExceptionSets() {
-    Set housematesWithExceptions = exceptionSets.housematesWithExceptions;
-    Set categoriesWithExceptions = exceptionSets.categoriesWithExceptions;
+  void deleteException(exception) {
+    unsavedExceptions.removeWhere((tempEx) => tempEx['id'] == exception['id']);
+    initializeExceptionSets();
+    notifyListeners();
+  }
 
-    for (var exception in exceptions) {
+  void initializeExceptionSets() {
+    // TO-DO: clean this up, the way exceptionSets is assigned isn't very efficient
+    exceptionSets = ExceptionSets(
+      housematesWithExceptions: {},
+      categoriesWithExceptions: {},
+    );
+
+    List exceptionsForThisFunc =
+        exceptionsEditMode ? unsavedExceptions : exceptions;
+
+    Set housematesWithExceptions = {};
+    Set categoriesWithExceptions = {};
+
+    for (var exception in exceptionsForThisFunc) {
       housematesWithExceptions.add(exception['name']);
       categoriesWithExceptions.add(exception['category']);
     }
 
-    return ExceptionSets(
+    exceptionSets = ExceptionSets(
       housematesWithExceptions: housematesWithExceptions,
       categoriesWithExceptions: categoriesWithExceptions,
     );

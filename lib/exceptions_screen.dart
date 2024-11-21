@@ -6,8 +6,6 @@ import 'exceptions_category_dropdown.dart';
 Widget exceptionsScreen() {
   return Consumer<AppState>(builder: (context, appState, child) {
     List exceptions = appState.exceptions;
-    List exceptionNamesAndCategories =
-        appState.returnExceptionSetForSortCriteria().toList();
 
     // Sort the exceptions based on the selected criteria
     exceptions.sort((a, b) {
@@ -50,7 +48,8 @@ Widget exceptionsScreen() {
           Column(
             children: <Widget>[
               // The list of exceptions
-              for (var name in exceptionNamesAndCategories) ...[
+              for (var name
+                  in appState.returnExceptionSetForSortCriteria()) ...[
                 Row(
                   children: <Widget>[
                     Padding(
@@ -154,7 +153,7 @@ Widget exceptionsScreen() {
                                     child: const Icon(CupertinoIcons.delete,
                                         size: 20.0),
                                     onPressed: () {
-                                      appState.exceptions.remove(exception);
+                                      appState.deleteException(exception);
                                     },
                                   ),
                                 )
