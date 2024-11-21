@@ -151,6 +151,7 @@ class AppState extends ChangeNotifier {
     int exceptionIndex = unsavedExceptions
         .indexWhere((tempEx) => tempEx['id'] == exception['id']);
     unsavedExceptions[exceptionIndex][type] = name;
+    initializeExceptionSets();
     notifyListeners();
   }
 
