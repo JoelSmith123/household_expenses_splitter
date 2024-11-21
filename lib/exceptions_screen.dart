@@ -87,30 +87,51 @@ Widget exceptionsScreen() {
                                           'name')
                                       : TextSpan(text: exception['name']),
                                   TextSpan(children: [
-                                    exception['category'] == 'All Expenses'
-                                        // TO-DO: handle All Expenses scenario to be editable like other categories
-                                        ? TextSpan(
+                                    if (exception['category'] == 'All Expenses')
+                                      TextSpan(children: [
+                                        TextSpan(
                                             text:
-                                                ' pays ${exception['percent'].toStringAsFixed(2)}% of all their household expenses.')
-                                        : TextSpan(
+                                                ' pays ${exception['percent'].toStringAsFixed(2)}% of '),
+                                        appState.exceptionsEditMode
+                                            ?
+                                            // the inline link for category dropdown
+                                            exceptionsCategoryDropdown(
+                                                appState,
+                                                context,
+                                                exception,
+                                                appState.exceptionSets
+                                                    .categoriesWithExceptions
+                                                    .toList(),
+                                                'category')
+                                            : const TextSpan(text: 'all'),
+                                        const TextSpan(
+                                            style: TextStyle(
+                                                color: CupertinoColors.black),
+                                            text: ' their household expenses.'),
+                                      ])
+                                    else
+                                      TextSpan(children: [
+                                        TextSpan(
                                             text:
                                                 ' pays ${exception['percent'].toStringAsFixed(2)}% of their normal '),
-                                    appState.exceptionsEditMode
-                                        ?
-                                        // the inline link for category dropdown
-                                        exceptionsCategoryDropdown(
-                                            appState,
-                                            context,
-                                            exception,
-                                            appState.exceptionSets
-                                                .categoriesWithExceptions
-                                                .toList(),
-                                            'category')
-                                        : TextSpan(text: exception['category']),
-                                    const TextSpan(
-                                        style: TextStyle(
-                                            color: CupertinoColors.black),
-                                        text: ' charge.'),
+                                        appState.exceptionsEditMode
+                                            ?
+                                            // the inline link for category dropdown
+                                            exceptionsCategoryDropdown(
+                                                appState,
+                                                context,
+                                                exception,
+                                                appState.exceptionSets
+                                                    .categoriesWithExceptions
+                                                    .toList(),
+                                                'category')
+                                            : TextSpan(
+                                                text: exception['category']),
+                                        const TextSpan(
+                                            style: TextStyle(
+                                                color: CupertinoColors.black),
+                                            text: ' charge.'),
+                                      ]),
                                   ]),
                                 ],
                               ),

@@ -163,6 +163,9 @@ class AppState extends ChangeNotifier {
   String returnTempSelectedNameOrCategory(exception, type) {
     int exceptionIndex = unsavedExceptions
         .indexWhere((tempEx) => tempEx['id'] == exception['id']);
+    if (unsavedExceptions[exceptionIndex][type] == 'All Expenses') {
+      return 'all';
+    }
     return unsavedExceptions[exceptionIndex][type];
   }
 
