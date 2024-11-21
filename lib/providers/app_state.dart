@@ -31,7 +31,7 @@ class AppState extends ChangeNotifier {
     expensesAmountControllers =
         List.generate(expenses.length, (index) => TextEditingController());
 
-    exceptionSets = initializeExceptionSets();
+    initializeExceptionSets();
   }
 
   // dispose controllers
@@ -57,6 +57,19 @@ class AppState extends ChangeNotifier {
   void updateBrightnessMode(BuildContext context) {
     final brightness = MediaQuery.of(context).platformBrightness;
     brightnessModeSwitchValue = brightness == Brightness.dark;
+    notifyListeners();
+  }
+
+  void handleExceptionsEditSaveBtnPressed() {
+    toggleExceptionsEditMode();
+
+    if (exceptionsEditMode) {
+      unsavedExceptions = exceptions;
+    } else {
+      exceptions = unsavedExceptions;
+      unsavedExceptions = [];
+    }
+
     notifyListeners();
   }
 
@@ -108,36 +121,64 @@ class AppState extends ChangeNotifier {
   ];
   List exceptions = [
     {
+      'id': UniqueKey().hashCode,
       'name': 'Jay',
       'category': 'All Expenses',
       'type': 'REDUCED',
       'percent': 50
     },
     {
+      'id': UniqueKey().hashCode,
       'name': 'Isabel',
       'category': 'Electricity',
       'type': 'REDUCED',
       'percent': 33.33
     },
-    {'name': 'Isabel', 'category': 'Pets', 'type': 'EXEMPT'}
+    {
+      'id': UniqueKey().hashCode,
+      'name': 'Isabel',
+      'category': 'Pets',
+      'type': 'EXEMPT'
+    }
   ];
+  List unsavedExceptions = [];
   num totalHouseholdIncome = 0;
   String currentPage = 'start';
   String previousPage = '';
-  String sortCriteria = 'name';
 
+  void updateTempSelectedItem(exception, String name, String type) {
+    exception[type] = name;
+    int exceptionIndex = unsavedExceptions
+        .indexWhere((tempEx) => tempEx['id'] == exception['id']);
+    unsavedExceptions[exceptionIndex][type] = name;
+    initializeExceptionSets();
+    notifyListeners();
+  }
+
+  int returnInitialSelectedItem(exception, exceptionNamesAndCategories, type) {
+    // TO-DO: update exceptionNamesAndCategories to use id identifiers instead of name
+    return exceptionNamesAndCategories.indexOf(exception[type]);
+  }
+
+  String returnTempSelectedNameOrCategory(exception, type) {
+    int exceptionIndex = unsavedExceptions
+        .indexWhere((tempEx) => tempEx['id'] == exception['id']);
+    return unsavedExceptions[exceptionIndex][type];
+  }
+
+  String sortCriteria = 'name';
   void updateSortCriteria(String newValue) {
     sortCriteria = newValue;
     notifyListeners();
   }
 
-  Set returnExceptionSetForSortCriteria() {
+  List returnExceptionSetForSortCriteria() {
     if (sortCriteria == 'name') {
-      return exceptionSets.housematesWithExceptions;
+      return exceptionSets.housematesWithExceptions.toList();
     } else if (sortCriteria == 'category') {
-      return exceptionSets.categoriesWithExceptions;
+      return exceptionSets.categoriesWithExceptions.toList();
     }
-    return {};
+    return [];
   }
 
   List returnExceptionsForSortCriteria(name) {
@@ -146,16 +187,31 @@ class AppState extends ChangeNotifier {
         .toList();
   }
 
-  ExceptionSets initializeExceptionSets() {
-    Set housematesWithExceptions = exceptionSets.housematesWithExceptions;
-    Set categoriesWithExceptions = exceptionSets.categoriesWithExceptions;
+  void deleteException(exception) {
+    unsavedExceptions.removeWhere((tempEx) => tempEx['id'] == exception['id']);
+    initializeExceptionSets();
+    notifyListeners();
+  }
 
-    for (var exception in exceptions) {
+  void initializeExceptionSets() {
+    // TO-DO: clean this up, the way exceptionSets is assigned isn't very efficient
+    exceptionSets = ExceptionSets(
+      housematesWithExceptions: {},
+      categoriesWithExceptions: {},
+    );
+
+    List exceptionsForThisFunc =
+        exceptionsEditMode ? unsavedExceptions : exceptions;
+
+    Set housematesWithExceptions = {};
+    Set categoriesWithExceptions = {};
+
+    for (var exception in exceptionsForThisFunc) {
       housematesWithExceptions.add(exception['name']);
       categoriesWithExceptions.add(exception['category']);
     }
 
-    return ExceptionSets(
+    exceptionSets = ExceptionSets(
       housematesWithExceptions: housematesWithExceptions,
       categoriesWithExceptions: categoriesWithExceptions,
     );

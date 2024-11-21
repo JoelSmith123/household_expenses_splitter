@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'providers/app_state.dart';
+import 'exceptions_category_dropdown.dart';
 
 Widget exceptionsScreen() {
   return Consumer<AppState>(builder: (context, appState, child) {
@@ -45,7 +46,6 @@ Widget exceptionsScreen() {
             ),
           ),
           Column(
-            // mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
               // The list of exceptions
               for (var name
@@ -62,37 +62,123 @@ Widget exceptionsScreen() {
                 ),
                 for (var exception
                     in appState.returnExceptionsForSortCriteria(name))
-                  Row(
-                    children: <Widget>[
-                      if (exception['type'] == 'REDUCED')
-                        Expanded(
-                          child: Padding(
-                            padding: const EdgeInsets.only(top: 10.0),
-                            child: Text(
-                              exception['category'] == 'All Expenses'
-                                  ? '${exception['name']} pays ${exception['percent'].toStringAsFixed(2)}% of all their household expenses.'
-                                  : '${exception['name']} pays ${exception['percent'].toStringAsFixed(2)}% of their normal ${exception['category']} charge.',
+                  Padding(
+                    padding: const EdgeInsets.only(top: 10.0),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.baseline,
+                      textBaseline: TextBaseline.alphabetic,
+                      children: <Widget>[
+                        if (exception['type'] == 'REDUCED')
+                          Expanded(
+                            child: Text.rich(
+                              textAlign: TextAlign.start,
+                              TextSpan(
+                                children: [
+                                  appState.exceptionsEditMode
+                                      ?
+                                      // the inline link for category dropdown
+                                      exceptionsCategoryDropdown(
+                                          appState,
+                                          context,
+                                          exception,
+                                          appState.exceptionSets
+                                              .housematesWithExceptions
+                                              .toList(),
+                                          'name')
+                                      : TextSpan(text: exception['name']),
+                                  TextSpan(children: [
+                                    exception['category'] == 'All Expenses'
+                                        // TO-DO: handle All Expenses scenario to be editable like other categories
+                                        ? TextSpan(
+                                            text:
+                                                ' pays ${exception['percent'].toStringAsFixed(2)}% of all their household expenses.')
+                                        : TextSpan(
+                                            text:
+                                                ' pays ${exception['percent'].toStringAsFixed(2)}% of their normal '),
+                                    appState.exceptionsEditMode
+                                        ?
+                                        // the inline link for category dropdown
+                                        exceptionsCategoryDropdown(
+                                            appState,
+                                            context,
+                                            exception,
+                                            appState.exceptionSets
+                                                .categoriesWithExceptions
+                                                .toList(),
+                                            'category')
+                                        : TextSpan(text: exception['category']),
+                                    const TextSpan(
+                                        style: TextStyle(
+                                            color: CupertinoColors.black),
+                                        text: ' charge.'),
+                                  ]),
+                                ],
+                              ),
+                            ),
+                          )
+                        else if (exception['type'] == 'EXEMPT')
+                          Expanded(
+                            child: Text.rich(
+                              textAlign: TextAlign.start,
+                              TextSpan(
+                                children: [
+                                  appState.exceptionsEditMode
+                                      ?
+                                      // the inline link for category dropdown
+                                      exceptionsCategoryDropdown(
+                                          appState,
+                                          context,
+                                          exception,
+                                          appState.exceptionSets
+                                              .housematesWithExceptions
+                                              .toList(),
+                                          'name')
+                                      : TextSpan(text: exception['name']),
+                                  const TextSpan(
+                                      style: TextStyle(
+                                          color: CupertinoColors.black),
+                                      text: ' is exempt from their '),
+                                  appState.exceptionsEditMode
+                                      ?
+                                      // the inline link for category dropdown
+                                      exceptionsCategoryDropdown(
+                                          appState,
+                                          context,
+                                          exception,
+                                          appState.exceptionSets
+                                              .categoriesWithExceptions
+                                              .toList(),
+                                          'category')
+                                      : TextSpan(text: exception['category']),
+                                  const TextSpan(
+                                      style: TextStyle(
+                                          color: CupertinoColors.black),
+                                      text: ' charge.'),
+                                ],
+                              ),
                             ),
                           ),
-                        )
-                      else if (exception['type'] == 'EXEMPT')
-                        Expanded(
-                          child: Padding(
-                            padding: const EdgeInsets.only(top: 10.0),
-                            child: Text(
-                              '${exception['name']} is exempt from their ${exception['category']} charge.',
-                            ),
-                          ),
+
+                        // delete button for each exception
+                        Center(
+                          child: appState.exceptionsEditMode
+                              ? SizedBox(
+                                  height:
+                                      24.0, // Match icon height for consistent alignment
+                                  width: 24.0,
+                                  child: CupertinoButton(
+                                    padding: EdgeInsets.zero,
+                                    child: const Icon(CupertinoIcons.delete,
+                                        size: 20.0),
+                                    onPressed: () {
+                                      appState.deleteException(exception);
+                                    },
+                                  ),
+                                )
+                              : Container(),
                         ),
-                      if (appState.exceptionsEditMode)
-                        CupertinoButton(
-                          padding: EdgeInsets.zero,
-                          child: const Icon(CupertinoIcons.delete),
-                          onPressed: () {
-                            appState.exceptions.remove(exception);
-                          },
-                        ),
-                    ],
+                      ],
+                    ),
                   ),
               ],
             ],
@@ -143,7 +229,7 @@ Widget exceptionsScreen() {
                   ),
                 ),
                 onPressed: () {
-                  appState.toggleExceptionsEditMode();
+                  appState.handleExceptionsEditSaveBtnPressed();
                 },
               ),
             ),
