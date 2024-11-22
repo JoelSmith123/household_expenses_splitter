@@ -5,7 +5,12 @@ import 'exceptions_category_dropdown.dart';
 
 Widget exceptionsScreen() {
   return Consumer<AppState>(builder: (context, appState, child) {
-    List exceptions = appState.exceptions;
+    List exceptions = [];
+    if (appState.exceptionsEditMode) {
+      exceptions = appState.unsavedExceptions;
+    } else {
+      exceptions = appState.exceptions;
+    }
 
     // Sort the exceptions based on the selected criteria
     exceptions.sort((a, b) {
@@ -60,14 +65,33 @@ Widget exceptionsScreen() {
                     ),
                   ],
                 ),
-                for (var exception
-                    in appState.returnExceptionsForSortCriteria(name))
+                for (var exception in appState.returnExceptionsForSortCriteria(
+                    exceptions, name))
                   Padding(
                     padding: const EdgeInsets.only(top: 10.0),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.baseline,
                       textBaseline: TextBaseline.alphabetic,
                       children: <Widget>[
+                        Center(
+                          child: appState.exceptionsEditMode
+                              ? exception['edited'] == true
+                                  ? const SizedBox(
+                                      height:
+                                          24.0, // Match height for consistent alignment
+                                      width: 24.0,
+                                      child: Icon(
+                                        CupertinoIcons
+                                            .star_fill, // Green asterisk icon
+                                        color: CupertinoColors
+                                            .systemGreen, // Set the color to green
+                                        size:
+                                            20.0, // Adjust size to fit the design
+                                      ),
+                                    )
+                                  : Container()
+                              : Container(),
+                        ),
                         if (exception['type'] == 'REDUCED')
                           Expanded(
                             child: Text.rich(
@@ -75,16 +99,17 @@ Widget exceptionsScreen() {
                               TextSpan(
                                 children: [
                                   appState.exceptionsEditMode
-                                      ?
-                                      // the inline link for category dropdown
-                                      exceptionsCategoryDropdown(
-                                          appState,
-                                          context,
-                                          exception,
-                                          appState.exceptionSets
-                                              .housematesWithExceptions
-                                              .toList(),
-                                          'name')
+                                      ? TextSpan(children: [
+                                          // the inline link for category dropdown
+                                          exceptionsCategoryDropdown(
+                                              appState,
+                                              context,
+                                              exception,
+                                              appState.exceptionSets
+                                                  .housematesWithExceptions
+                                                  .toList(),
+                                              'name')
+                                        ])
                                       : TextSpan(text: exception['name']),
                                   TextSpan(children: [
                                     if (exception['category'] == 'All Expenses')

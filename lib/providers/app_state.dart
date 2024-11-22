@@ -31,6 +31,9 @@ class AppState extends ChangeNotifier {
     expensesAmountControllers =
         List.generate(expenses.length, (index) => TextEditingController());
 
+    // we initialize unsaved exceptions here because they need to exist before UI elements on edit depend on them and there's no reason they can't exist this early. All that matters is that they are saved and reset properly later.
+    initializeUnsavedExceptions();
+
     initializeExceptionSets();
   }
 
@@ -60,12 +63,20 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
+  void initializeUnsavedExceptions() {
+    unsavedExceptions =
+        exceptions.map((exception) => {...exception, 'edited': false}).toList();
+  }
+
   void handleExceptionsEditSaveBtnPressed() {
     toggleExceptionsEditMode();
 
-    if (exceptionsEditMode) {
-      unsavedExceptions = exceptions;
-    } else {
+    if (!exceptionsEditMode) {
+      unsavedExceptions = exceptions.map((exception) {
+        final newException = Map<String, dynamic>.from(exception);
+        newException.remove('edited');
+        return newException;
+      }).toList();
       exceptions = unsavedExceptions;
       unsavedExceptions = [];
     }
@@ -141,6 +152,7 @@ class AppState extends ChangeNotifier {
       'type': 'EXEMPT'
     }
   ];
+  // unsaved exceptions have an additional "edited" key to track if they have been edited for UI purposes. Separated from the regular exceptions to allow for reverting changes.
   List unsavedExceptions = [];
   num totalHouseholdIncome = 0;
   String currentPage = 'start';
@@ -148,11 +160,46 @@ class AppState extends ChangeNotifier {
 
   void updateTempSelectedItem(exception, String name, String type) {
     exception[type] = name;
-    int exceptionIndex = unsavedExceptions
+    int unsavedExceptionIndex = unsavedExceptions
         .indexWhere((tempEx) => tempEx['id'] == exception['id']);
-    unsavedExceptions[exceptionIndex][type] = name;
+    int savedExceptionIndex =
+        exceptions.indexWhere((ex) => ex['id'] == exception['id']);
+
+    // check if the exception has reverted to unedited with this change
+    bool categoryChanged = unsavedExceptions[unsavedExceptionIndex]
+            ['category'] !=
+        exceptions[savedExceptionIndex]['category'];
+    bool nameChanged = unsavedExceptions[unsavedExceptionIndex]['name'] !=
+        exceptions[savedExceptionIndex]['name'];
+    bool typeChanged = unsavedExceptions[unsavedExceptionIndex]['type'] !=
+        exceptions[savedExceptionIndex]['type'];
+    bool percentChanged = unsavedExceptions[unsavedExceptionIndex]['percent'] !=
+        exceptions[savedExceptionIndex]['percent'];
+    bool isEdited =
+        (categoryChanged || nameChanged || typeChanged || percentChanged);
+
+    if (isEdited) {
+      unsavedExceptions[unsavedExceptionIndex]['edited'] = true;
+    } else {
+      unsavedExceptions[unsavedExceptionIndex]['edited'] = false;
+    }
+
+    unsavedExceptions[unsavedExceptionIndex][type] = name;
     initializeExceptionSets();
     notifyListeners();
+  }
+
+  bool returnIfExceptionIsEdited(exception) {
+    return true;
+    // int unsavedExceptionIndex = unsavedExceptions
+    //     .indexWhere((tempEx) => tempEx['id'] == exception['id']);
+
+    // if (unsavedExceptionIndex == -1) {
+    //   // If no matching exception is found, return false or handle the error appropriately
+    //   return false;
+    // }
+
+    // return unsavedExceptions[unsavedExceptionIndex]['edited'] as bool;
   }
 
   int returnInitialSelectedItem(exception, exceptionNamesAndCategories, type) {
@@ -184,8 +231,8 @@ class AppState extends ChangeNotifier {
     return [];
   }
 
-  List returnExceptionsForSortCriteria(name) {
-    return exceptions
+  List returnExceptionsForSortCriteria(funcExceptions, name) {
+    return funcExceptions
         .where((exception) => exception[sortCriteria] == name)
         .toList();
   }
