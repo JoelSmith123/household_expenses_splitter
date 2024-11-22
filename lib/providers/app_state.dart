@@ -71,17 +71,28 @@ class AppState extends ChangeNotifier {
   void handleExceptionsEditSaveBtnPressed() {
     toggleExceptionsEditMode();
 
-    if (!exceptionsEditMode) {
-      unsavedExceptions = exceptions.map((exception) {
-        final newException = Map<String, dynamic>.from(exception);
-        newException.remove('edited');
-        return newException;
-      }).toList();
-      exceptions = unsavedExceptions;
-      unsavedExceptions = [];
-    }
-
     notifyListeners();
+  }
+
+  void sortExceptions() {
+    exceptions.sort((a, b) {
+      if (sortCriteria == 'name') {
+        return a['name'].compareTo(b['name']);
+      } else if (sortCriteria == 'category') {
+        return a['category'].compareTo(b['category']);
+      }
+      return 0;
+    });
+  }
+
+  void saveExceptions() {
+    List unsavedExceptionsFunc = unsavedExceptions.map((unsavedEx) {
+      final newException = Map<String, dynamic>.from(unsavedEx);
+      newException.remove('edited');
+      return newException;
+    }).toList();
+    exceptions = unsavedExceptionsFunc;
+    unsavedExceptions = [];
   }
 
   // edit mode for exceptions screen
@@ -186,20 +197,23 @@ class AppState extends ChangeNotifier {
 
     unsavedExceptions[unsavedExceptionIndex][type] = name;
     initializeExceptionSets();
+    sortExceptions();
     notifyListeners();
   }
 
-  bool returnIfExceptionIsEdited(exception) {
-    return true;
-    // int unsavedExceptionIndex = unsavedExceptions
-    //     .indexWhere((tempEx) => tempEx['id'] == exception['id']);
+  Map getEditedExceptionsByIdsMap() {
+    Map<int, dynamic> editedExceptionsByIdsMap = {};
 
-    // if (unsavedExceptionIndex == -1) {
-    //   // If no matching exception is found, return false or handle the error appropriately
-    //   return false;
-    // }
+    for (var unsavedEx in unsavedExceptions) {
+      if (unsavedEx['edited'] == true) {
+        int exOfUnsavedExIndex =
+            exceptions.indexWhere((ex) => ex['id'] == unsavedEx['id']);
 
-    // return unsavedExceptions[unsavedExceptionIndex]['edited'] as bool;
+        editedExceptionsByIdsMap[unsavedEx['id']] =
+            exceptions[exOfUnsavedExIndex];
+      }
+    }
+    return editedExceptionsByIdsMap;
   }
 
   int returnInitialSelectedItem(exception, exceptionNamesAndCategories, type) {
@@ -219,6 +233,7 @@ class AppState extends ChangeNotifier {
   String sortCriteria = 'name';
   void updateSortCriteria(String newValue) {
     sortCriteria = newValue;
+    sortExceptions();
     notifyListeners();
   }
 

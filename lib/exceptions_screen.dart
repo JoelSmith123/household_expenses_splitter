@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'providers/app_state.dart';
 import 'exceptions_category_dropdown.dart';
+import 'exceptions_save_confirmation.dart';
 
 Widget exceptionsScreen() {
   return Consumer<AppState>(builder: (context, appState, child) {
@@ -13,14 +14,14 @@ Widget exceptionsScreen() {
     }
 
     // Sort the exceptions based on the selected criteria
-    exceptions.sort((a, b) {
-      if (appState.sortCriteria == 'name') {
-        return a['name'].compareTo(b['name']);
-      } else if (appState.sortCriteria == 'category') {
-        return a['category'].compareTo(b['category']);
-      }
-      return 0;
-    });
+    // exceptions.sort((a, b) {
+    //   if (appState.sortCriteria == 'name') {
+    //     return a['name'].compareTo(b['name']);
+    //   } else if (appState.sortCriteria == 'category') {
+    //     return a['category'].compareTo(b['category']);
+    //   }
+    //   return 0;
+    // });
 
     return Expanded(
       child: Column(
@@ -275,7 +276,12 @@ Widget exceptionsScreen() {
                   ),
                 ),
                 onPressed: () {
-                  appState.handleExceptionsEditSaveBtnPressed();
+                  // appState.handleExceptionsEditSaveBtnPressed();
+                  if (!appState.exceptionsEditMode) {
+                    appState.handleExceptionsEditSaveBtnPressed();
+                  } else {
+                    showSaveConfirmation(context, appState, exceptions);
+                  }
                 },
               ),
             ),
