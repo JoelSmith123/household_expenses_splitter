@@ -13,16 +13,6 @@ Widget exceptionsScreen() {
       exceptions = appState.exceptions;
     }
 
-    // Sort the exceptions based on the selected criteria
-    // exceptions.sort((a, b) {
-    //   if (appState.sortCriteria == 'name') {
-    //     return a['name'].compareTo(b['name']);
-    //   } else if (appState.sortCriteria == 'category') {
-    //     return a['category'].compareTo(b['category']);
-    //   }
-    //   return 0;
-    // });
-
     return Expanded(
       child: Column(
         children: <Widget>[
