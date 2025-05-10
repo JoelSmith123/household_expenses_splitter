@@ -54,8 +54,8 @@ Widget menuScreen() {
                       color: CupertinoColors.systemYellow),
                   CupertinoSwitch(
                     value: appState.brightnessModeSwitchValue,
-                    activeColor: CupertinoColors.systemGrey,
-                    trackColor: CupertinoColors.systemYellow,
+                    activeTrackColor: CupertinoColors.systemGrey,
+                    inactiveTrackColor: CupertinoColors.systemYellow,
                     onChanged: (bool value) {
                       appState.toggleBrightnessMode();
                     },

@@ -17,7 +17,7 @@ Widget expensesScreen() {
                 'Enter ${appState.expenses[i]['name']}\'s total amount for the month',
           ),
         Container(
-          margin: EdgeInsets.only(top: 20.0),
+          margin: const EdgeInsets.only(top: 20.0),
           width: double.infinity,
           height: 50.0,
           decoration: BoxDecoration(
@@ -26,7 +26,7 @@ Widget expensesScreen() {
           ),
           child: CupertinoButton(
             padding: EdgeInsets.zero,
-            child: Text(
+            child: const Text(
               'Next',
               style: TextStyle(color: CupertinoColors.white),
             ),
