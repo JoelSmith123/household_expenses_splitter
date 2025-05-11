@@ -15,7 +15,7 @@ Widget householdIncomeSummaryScreen() {
                 '${housemate['name']}\'s percentage of household income is ${housemate['percentageOfHouseholdIncome'].toStringAsFixed(2)}%'),
           ),
         Container(
-          margin: EdgeInsets.only(top: 20.0),
+          margin: const EdgeInsets.only(top: 20.0),
           width: double.infinity,
           height: 50.0,
           decoration: BoxDecoration(
@@ -24,7 +24,7 @@ Widget householdIncomeSummaryScreen() {
           ),
           child: CupertinoButton(
             padding: EdgeInsets.zero,
-            child: Text(
+            child: const Text(
               'Next',
               style: TextStyle(color: CupertinoColors.white),
             ),
