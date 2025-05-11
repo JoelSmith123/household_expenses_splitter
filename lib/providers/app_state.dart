@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class ExceptionSets {
   Set housematesWithExceptions;
@@ -11,9 +12,18 @@ class ExceptionSets {
 }
 
 class AppState extends ChangeNotifier {
+  final SupabaseClient supabase = Supabase.instance.client;
+
   // constructor
   AppState() {
     _initializeControllers();
+    getData();
+  }
+
+  void getData() {
+    getHousemates();
+    getExpenses();
+    getExceptions();
   }
 
   // controllers
@@ -103,66 +113,25 @@ class AppState extends ChangeNotifier {
   }
 
   // core functionality state
-  List housemates = [
-    {
-      'name': 'Isabel',
-      'netIncome': 0,
-      'percentageOfHouseholdIncome': 0,
-      'shareOfExpenses': [],
-    },
-    {
-      'name': 'Jay',
-      'netIncome': 0,
-      'percentageOfHouseholdIncome': 0,
-      'shareOfExpenses': [],
-    },
-    {
-      'name': 'Joel',
-      'netIncome': 0,
-      'percentageOfHouseholdIncome': 0,
-      'shareOfExpenses': [],
-    }
-  ];
-  List expenses = [
-    {
-      'name': 'Rent',
-      'amount': 0,
-    },
-    {
-      'name': 'Utilities',
-      'amount': 0,
-    },
-    {
-      'name': 'Groceries',
-      'amount': 0,
-    },
-    {
-      'name': 'Pets',
-      'amount': 0,
-    }
-  ];
-  List exceptions = [
-    {
-      'id': UniqueKey().hashCode,
-      'name': 'Jay',
-      'category': 'All Expenses',
-      'type': 'REDUCED',
-      'percent': 50
-    },
-    {
-      'id': UniqueKey().hashCode,
-      'name': 'Isabel',
-      'category': 'Electricity',
-      'type': 'REDUCED',
-      'percent': 33.33
-    },
-    {
-      'id': UniqueKey().hashCode,
-      'name': 'Isabel',
-      'category': 'Pets',
-      'type': 'EXEMPT'
-    }
-  ];
+  List housemates = [];
+  void getHousemates() async {
+    final data = await supabase.from('users').select().eq('household_id', 1);
+    housemates = data;
+  }
+
+  List expenses = [];
+  void getExpenses() async {
+    final data = await supabase.from('expenses').select().eq('household_id', 1);
+    expenses = data;
+  }
+
+  List exceptions = [];
+  void getExceptions() async {
+    final data =
+        await supabase.from('exceptions').select().eq('household_id', 1);
+    exceptions = data;
+  }
+
   // unsaved exceptions have an additional "edited" key to track if they have been edited for UI purposes. Separated from the regular exceptions to allow for reverting changes.
   List unsavedExceptions = [];
   num totalHouseholdIncome = 0;
