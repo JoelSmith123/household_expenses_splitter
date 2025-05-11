@@ -2,6 +2,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'providers/app_state.dart';
 
+import 'package:supabase_flutter/supabase_flutter.dart';
+
 import 'menu_screen.dart';
 import 'config_screen.dart';
 import 'exceptions_screen.dart';
@@ -11,11 +13,17 @@ import 'expenses_screen.dart';
 import 'summary_screen.dart';
 // testing git stuff
 
-void main() {
+void main() async {
+  await Supabase.initialize(
+    url: 'https://wfotybsrulygfaucjcpa.supabase.co',
+    anonKey:
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indmb3R5YnNydWx5Z2ZhdWNqY3BhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzgzMDkwMzQsImV4cCI6MjA1Mzg4NTAzNH0.kudmu74JQfGfQJ1_63tialCwtkPKOdg9XM08liuCpnk',
+  );
+
   runApp(
     ChangeNotifierProvider(
       create: (context) => AppState(),
-      child: MyApp(),
+      child: const MyApp(),
     ),
   );
 }
@@ -35,7 +43,7 @@ class MyApp extends StatelessWidget {
               ? Brightness.dark
               : Brightness.light,
         ),
-        home: MyHomePage(),
+        home: const MyHomePage(),
       );
     });
   }
