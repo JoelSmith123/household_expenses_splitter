@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# BEFORE RUNNING
+# for simpler setup, simply run: 
+# flutter run
+
 # to run, simply run in terminal:
 # ./ios-flutter-setup.sh
 
