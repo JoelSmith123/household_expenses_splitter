@@ -115,14 +115,6 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-# Launch Flutter App
-# -----------------------------
-log_and_echo "Launching Flutter app on iOS Simulator..."
-flutter run
-if [ $? -ne 0 ]; then
-    log_error "Failed to launch."
-    exit 1
-fi
-
 log_and_echo "=================================================="
 log_and_echo "${GREEN}✅ Setup Complete! You should now be able to code and run the project.${NC}"
+log_notice "Please run 'flutter run' to continue." 
