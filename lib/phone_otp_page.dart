@@ -13,7 +13,27 @@ class PhoneOtpPage extends StatefulWidget {
 class _PhoneOtpPageState extends State<PhoneOtpPage> {
   final _phoneCtrl = TextEditingController();
   final _otpCtrl = TextEditingController();
+  late final FocusNode _otpFocus;
   bool _codeSent = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _otpFocus = FocusNode()
+      ..addListener(() {
+        if (!_otpFocus.hasFocus) {
+          FocusManager.instance.primaryFocus?.unfocus(); // dismiss keyboard
+        }
+      });
+  }
+
+  @override
+  void dispose() {
+    _otpFocus.dispose();
+    _phoneCtrl.dispose();
+    _otpCtrl.dispose();
+    super.dispose();
+  }
 
   Future<void> _sendOtp() async {
     await supabase.auth.signInWithOtp(
@@ -39,17 +59,40 @@ class _PhoneOtpPageState extends State<PhoneOtpPage> {
       children: [
         TextField(
           controller: _phoneCtrl,
-          decoration: const InputDecoration(labelText: 'Phone'),
+          keyboardType: TextInputType.number,
+          onTapOutside: (_) => FocusScope.of(context).unfocus(),
+          decoration: const InputDecoration(
+            labelText: 'sign in with phone number',
+            labelStyle: const TextStyle(color: Color(0xFF196719)),
+            enabledBorder: OutlineInputBorder(
+              borderSide: const BorderSide(color: Color(0xFF196719), width: 4),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderSide: const BorderSide(color: Colors.cyanAccent, width: 2),
+            ),
+          ),
         ),
         if (_codeSent)
           TextField(
             controller: _otpCtrl,
-            decoration: const InputDecoration(labelText: 'OTP code'),
+            keyboardType: TextInputType.number,
+            onTapOutside: (_) => FocusScope.of(context).unfocus(),
+            decoration: const InputDecoration(
+              labelText: 'OTP code',
+              labelStyle: const TextStyle(color: Color(0xFF228b22)),
+              enabledBorder: OutlineInputBorder(
+                borderSide: const BorderSide(color: Color(0xFF228b22)),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderSide:
+                    const BorderSide(color: Colors.cyanAccent, width: 2),
+              ),
+            ),
           ),
         const SizedBox(height: 16),
         ElevatedButton(
           onPressed: _codeSent ? _verifyOtp : _sendOtp,
-          child: Text(_codeSent ? 'Verify code' : 'Send code'),
+          child: Text(_codeSent ? 'Verify code' : 'Send OTP code'),
         ),
       ],
     );
