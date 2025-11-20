@@ -26,7 +26,7 @@ Widget signinScreen() {
               ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 44),
             PhoneOtpPage(),
           ],
         ),

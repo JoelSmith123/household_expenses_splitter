@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 final supabase = Supabase.instance.client;
@@ -64,11 +65,14 @@ class _PhoneOtpPageState extends State<PhoneOtpPage> {
           decoration: const InputDecoration(
             labelText: 'sign in with phone number',
             labelStyle: const TextStyle(color: Color(0xFF196719)),
+            filled: true,
+            fillColor: Colors.white,
             enabledBorder: OutlineInputBorder(
-              borderSide: const BorderSide(color: Color(0xFF196719), width: 4),
+                borderRadius: BorderRadius.all(Radius.circular(12)),
+              borderSide: const BorderSide(color: Color(0xFF196719), width: 5),
             ),
             focusedBorder: OutlineInputBorder(
-              borderSide: const BorderSide(color: Colors.cyanAccent, width: 2),
+              borderSide: const BorderSide(color: Color(0xFF196719), width: 2),
             ),
           ),
         ),
@@ -90,9 +94,11 @@ class _PhoneOtpPageState extends State<PhoneOtpPage> {
             ),
           ),
         const SizedBox(height: 16),
-        ElevatedButton(
+        CupertinoButton(
           onPressed: _codeSent ? _verifyOtp : _sendOtp,
-          child: Text(_codeSent ? 'Verify code' : 'Send OTP code'),
+          child: const Text('Verify code',
+              style: TextStyle(color: CupertinoColors.white)),
+          color: const Color(0xFF228b22),
         ),
       ],
     );
