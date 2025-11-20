@@ -1,9 +1,11 @@
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'providers/app_state.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'signin_screen.dart';
 import 'menu_screen.dart';
 import 'config_screen.dart';
 import 'exceptions_screen.dart';
@@ -14,6 +16,7 @@ import 'summary_screen.dart';
 // testing git stuff
 
 void main() async {
+    WidgetsFlutterBinding.ensureInitialized();
   await Supabase.initialize(
     url: 'https://wfotybsrulygfaucjcpa.supabase.co',
     anonKey:
@@ -37,6 +40,16 @@ class MyApp extends StatelessWidget {
 
     return Consumer<AppState>(builder: (context, appState, child) {
       return CupertinoApp(
+              debugShowCheckedModeBanner: false,
+        localizationsDelegates: const [
+          GlobalMaterialLocalizations
+              .delegate, // <-- gives MaterialLocalizations
+          GlobalWidgetsLocalizations.delegate,
+          DefaultCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: const [
+          Locale('en', 'US'),
+        ],
         title: 'Flutter Demo',
         theme: CupertinoThemeData(
           brightness: appState.brightnessModeSwitchValue
@@ -55,6 +68,7 @@ class MyHomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const flowPages = [
+      'signin',
       'start',
       'expenses',
       'summary',
@@ -62,6 +76,7 @@ class MyHomePage extends StatelessWidget {
     ];
     return Consumer<AppState>(builder: (context, appState, child) {
       return CupertinoPageScaffold(
+        backgroundColor: Color(0xFFf9f5d2),
         navigationBar: CupertinoNavigationBar(
           leading: Builder(
             builder: (BuildContext context) {
@@ -94,6 +109,7 @@ class MyHomePage extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
                 if (appState.currentPage == 'menu') menuScreen(),
+                if (appState.currentPage == 'signin') signinScreen(),
                 if (appState.currentPage == 'start') startScreen(),
                 if (appState.currentPage == 'config') configScreen(),
                 if (appState.currentPage == 'exceptions') exceptionsScreen(),

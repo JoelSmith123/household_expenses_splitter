@@ -135,7 +135,7 @@ class AppState extends ChangeNotifier {
   // unsaved exceptions have an additional "edited" key to track if they have been edited for UI purposes. Separated from the regular exceptions to allow for reverting changes.
   List unsavedExceptions = [];
   num totalHouseholdIncome = 0;
-  String currentPage = 'start';
+  String currentPage = 'signin';
   String previousPage = '';
 
   void updateTempSelectedItem(exception, String name, String type) {
@@ -292,10 +292,11 @@ class AppState extends ChangeNotifier {
   // navigation methods
   void handleMenuButtonPressed(icon) {
     const flowPages = [
-      'start',
-      'expenses',
-      'summary',
-      'household income summary'
+        'signin'
+        'start',
+        'expenses',
+        'summary',
+        'household income summary'
     ];
     if (flowPages.contains(currentPage) && icon == CupertinoIcons.bars) {
       previousPage = currentPage;
