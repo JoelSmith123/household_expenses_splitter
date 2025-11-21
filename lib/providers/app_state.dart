@@ -61,9 +61,15 @@ class AppState extends ChangeNotifier {
 
   // brightness mode
   bool brightnessModeSwitchValue = false;
+  bool signedIn = false;
 
   void toggleBrightnessMode() {
     brightnessModeSwitchValue = !brightnessModeSwitchValue;
+    notifyListeners();
+  }
+
+  void setSignedIn(bool value) {
+    signedIn = value;
     notifyListeners();
   }
 

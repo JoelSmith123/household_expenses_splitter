@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'providers/app_state.dart';
 
 final supabase = Supabase.instance.client;
 
@@ -13,7 +16,25 @@ class PhoneOtpPage extends StatefulWidget {
 class _PhoneOtpPageState extends State<PhoneOtpPage> {
   final _phoneCtrl = TextEditingController();
   final _otpCtrl = TextEditingController();
+  late final FocusNode _otpFocus;
+  late final FocusNode _phoneFocus;
   bool _codeSent = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _otpFocus = FocusNode();
+    _phoneFocus = FocusNode();
+  }
+
+  @override
+  void dispose() {
+    _otpFocus.dispose();
+    _phoneFocus.dispose();
+    _phoneCtrl.dispose();
+    _otpCtrl.dispose();
+    super.dispose();
+  }
 
   Future<void> _sendOtp() async {
     await supabase.auth.signInWithOtp(
@@ -31,6 +52,10 @@ class _PhoneOtpPageState extends State<PhoneOtpPage> {
 
     // TODO: navigate to your main screen
     print('User: ${res.user?.id}');
+    if (!mounted) return;
+    _otpCtrl.clear();
+    setState(() => _codeSent = false);
+    context.read<AppState>().setSignedIn(true);
   }
 
   @override
@@ -39,17 +64,55 @@ class _PhoneOtpPageState extends State<PhoneOtpPage> {
       children: [
         TextField(
           controller: _phoneCtrl,
-          decoration: const InputDecoration(labelText: 'Phone'),
+          focusNode: _phoneFocus,
+          keyboardType: TextInputType.number,
+          onTapOutside: (_) => FocusScope.of(context).unfocus(),
+          decoration: const InputDecoration(
+            labelText: 'sign in with phone number',
+            labelStyle: const TextStyle(color: Color(0xFF196719)),
+            filled: true,
+            fillColor: CupertinoColors.white,
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.all(Radius.circular(12)),
+              borderSide: const BorderSide(color: Color(0xFF196719), width: 5),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderSide: const BorderSide(color: Color(0xFF196719), width: 2),
+            ),
+          ),
         ),
-        if (_codeSent)
+        if (_codeSent) ...[
+          const SizedBox(height: 10),
           TextField(
             controller: _otpCtrl,
-            decoration: const InputDecoration(labelText: 'OTP code'),
+            focusNode: _otpFocus,
+            keyboardType: TextInputType.number,
+            onTapOutside: (_) => FocusScope.of(context).unfocus(),
+            decoration: const InputDecoration(
+              labelText: 'OTP code',
+              labelStyle: TextStyle(color: Color(0xFF196719)),
+              filled: true,
+              fillColor: CupertinoColors.white,
+              enabledBorder: OutlineInputBorder(
+                borderSide:
+                    const BorderSide(color: Color(0xFF196719), width: 5),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderSide:
+                    const BorderSide(color: Color(0xFF196719), width: 2),
+              ),
+            ),
           ),
+        ],
+        
         const SizedBox(height: 16),
-        ElevatedButton(
+        CupertinoButton(
           onPressed: _codeSent ? _verifyOtp : _sendOtp,
-          child: Text(_codeSent ? 'Verify code' : 'Send code'),
+          child: Text(
+            _codeSent ? 'Verify code' : 'Send OTP code',
+            style: const TextStyle(color: CupertinoColors.white),
+          ),
+          color: const Color(0xFF228b22),
         ),
       ],
     );
