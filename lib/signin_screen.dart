@@ -8,12 +8,10 @@ import 'package:supabase_auth_ui/supabase_auth_ui.dart';
 
 import 'phone_otp_page.dart';
 
-// keep your existing Consumer pattern if you want
 Widget signinScreen() {
   return Consumer<AppState>(
     builder: (context, appState, child) {
       return Material(
-        // <-- this is the important part
         color: Colors.transparent, // so it respects the Cupertino bg color
         child: Column(
           mainAxisSize: MainAxisSize.min,
