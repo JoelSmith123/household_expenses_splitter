@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'providers/app_state.dart';
 
 final supabase = Supabase.instance.client;
 
@@ -50,6 +52,10 @@ class _PhoneOtpPageState extends State<PhoneOtpPage> {
 
     // TODO: navigate to your main screen
     print('User: ${res.user?.id}');
+    if (!mounted) return;
+    _otpCtrl.clear();
+    setState(() => _codeSent = false);
+    context.read<AppState>().setSignedIn(true);
   }
 
   @override
