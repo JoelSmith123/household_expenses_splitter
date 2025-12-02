@@ -71,7 +71,7 @@ class AppState extends ChangeNotifier {
   void initializeView() {
     // delay for testing
     Future.delayed(const Duration(seconds: 2), () => navigateToPage('signin'));
-    
+
     // without delay:
     // navigateToPage('signin');
   }
@@ -90,6 +90,10 @@ class AppState extends ChangeNotifier {
   void setSignedIn(bool value) {
     signedIn = value;
     notifyListeners();
+
+    // if (signedIn == true && currentPage == 'signin') {
+    //   navigateToPage('start');
+    // }
   }
 
   void updateBrightnessMode(BuildContext context) {
@@ -317,8 +321,8 @@ class AppState extends ChangeNotifier {
   // navigation methods
   void handleMenuButtonPressed(icon) {
     const flowPages = [
-      'signin'
-          'start',
+      'signin',
+      'start',
       'expenses',
       'summary',
       'household income summary'
