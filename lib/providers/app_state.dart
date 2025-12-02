@@ -16,14 +16,23 @@ class AppState extends ChangeNotifier {
 
   // constructor
   AppState() {
-    _initializeControllers();
-    getData();
+    _init();
   }
 
-  void getData() {
-    getHousemates();
-    getExpenses();
-    getExceptions();
+  Future<void> _init() async {
+    _initializeControllers();
+    await getData();
+
+    // initialize UI/view after controller initialization and data retrieval
+    initializeView();
+  }
+
+  Future<void> getData() async {
+    await Future.wait([
+      getHousemates(),
+      getExpenses(),
+      getExceptions(),
+    ]);
   }
 
   // controllers
@@ -59,9 +68,19 @@ class AppState extends ChangeNotifier {
     super.dispose();
   }
 
+  void initializeView() {
+    // delay for testing
+    Future.delayed(const Duration(seconds: 2), () => navigateToPage('signin'));
+    
+    // without delay:
+    // navigateToPage('signin');
+  }
+
   // brightness mode
   bool brightnessModeSwitchValue = false;
   bool signedIn = false;
+
+  bool showNavigationBar = false;
 
   void toggleBrightnessMode() {
     brightnessModeSwitchValue = !brightnessModeSwitchValue;
@@ -120,19 +139,19 @@ class AppState extends ChangeNotifier {
 
   // core functionality state
   List housemates = [];
-  void getHousemates() async {
+  Future<void> getHousemates() async {
     final data = await supabase.from('users').select().eq('household_id', 1);
     housemates = data;
   }
 
   List expenses = [];
-  void getExpenses() async {
+  Future<void> getExpenses() async {
     final data = await supabase.from('expenses').select().eq('household_id', 1);
     expenses = data;
   }
 
   List exceptions = [];
-  void getExceptions() async {
+  Future<void> getExceptions() async {
     final data =
         await supabase.from('exceptions').select().eq('household_id', 1);
     exceptions = data;
@@ -141,7 +160,7 @@ class AppState extends ChangeNotifier {
   // unsaved exceptions have an additional "edited" key to track if they have been edited for UI purposes. Separated from the regular exceptions to allow for reverting changes.
   List unsavedExceptions = [];
   num totalHouseholdIncome = 0;
-  String currentPage = 'signin';
+  String currentPage = 'logo';
   String previousPage = '';
 
   void updateTempSelectedItem(exception, String name, String type) {
@@ -298,11 +317,11 @@ class AppState extends ChangeNotifier {
   // navigation methods
   void handleMenuButtonPressed(icon) {
     const flowPages = [
-        'signin'
-        'start',
-        'expenses',
-        'summary',
-        'household income summary'
+      'signin'
+          'start',
+      'expenses',
+      'summary',
+      'household income summary'
     ];
     if (flowPages.contains(currentPage) && icon == CupertinoIcons.bars) {
       previousPage = currentPage;

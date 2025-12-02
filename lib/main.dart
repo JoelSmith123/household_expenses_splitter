@@ -5,6 +5,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'logo_screen.dart';
 import 'signin_screen.dart';
 import 'menu_screen.dart';
 import 'config_screen.dart';
@@ -65,6 +66,48 @@ class MyApp extends StatelessWidget {
 class MyHomePage extends StatelessWidget {
   const MyHomePage({super.key});
 
+  Widget _buildCurrentPage(AppState appState) {
+    Widget screen;
+
+    switch (appState.currentPage) {
+      case 'logo':
+        screen = logoScreen();
+        break;
+      case 'menu':
+        screen = menuScreen();
+        break;
+      case 'signin':
+        screen = signinScreen();
+        break;
+      case 'start':
+        screen = startScreen();
+        break;
+      case 'config':
+        screen = configScreen();
+        break;
+      case 'exceptions':
+        screen = exceptionsScreen();
+        break;
+      case 'expenses':
+        screen = expensesScreen();
+        break;
+      case 'summary':
+        screen = summaryScreen();
+        break;
+      case 'household income summary':
+        screen = householdIncomeSummaryScreen();
+        break;
+      default:
+        screen = logoScreen();
+        break;
+    }
+
+    return KeyedSubtree(
+      key: ValueKey(appState.currentPage),
+      child: screen,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     const flowPages = [
@@ -77,46 +120,48 @@ class MyHomePage extends StatelessWidget {
     return Consumer<AppState>(builder: (context, appState, child) {
       return CupertinoPageScaffold(
         backgroundColor: Color(0xFFf9f5d2),
-        navigationBar: CupertinoNavigationBar(
-          leading: Builder(
-            builder: (BuildContext context) {
-              IconData icon;
-              if (flowPages.contains(appState.currentPage)) {
-                icon = CupertinoIcons.bars;
-              } else if (appState.currentPage == 'menu') {
-                icon = CupertinoIcons.clear;
-              } else if (appState.currentPage == 'config' ||
-                  appState.currentPage == 'exceptions') {
-                icon = CupertinoIcons.back;
-              } else {
-                icon = CupertinoIcons.clear;
-              }
-              return CupertinoButton(
-                padding: EdgeInsets.zero,
-                child: Icon(icon),
-                onPressed: () {
-                  appState.handleMenuButtonPressed(icon);
-                },
-              );
-            },
-          ),
-          middle: Text(appState.currentPage),
-        ),
+        navigationBar: appState.showNavigationBar
+            ? CupertinoNavigationBar(
+                leading: Builder(
+                  builder: (BuildContext context) {
+                    IconData icon;
+                    if (flowPages.contains(appState.currentPage)) {
+                      icon = CupertinoIcons.bars;
+                    } else if (appState.currentPage == 'menu') {
+                      icon = CupertinoIcons.clear;
+                    } else if (appState.currentPage == 'config' ||
+                        appState.currentPage == 'exceptions') {
+                      icon = CupertinoIcons.back;
+                    } else {
+                      icon = CupertinoIcons.clear;
+                    }
+                    return CupertinoButton(
+                      padding: EdgeInsets.zero,
+                      child: Icon(icon),
+                      onPressed: () {
+                        appState.handleMenuButtonPressed(icon);
+                      },
+                    );
+                  },
+                ),
+              )
+            : null,
         child: SafeArea(
           minimum: const EdgeInsets.all(20.0),
           child: Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
-                if (appState.currentPage == 'menu') menuScreen(),
-                if (appState.currentPage == 'signin') signinScreen(),
-                if (appState.currentPage == 'start') startScreen(),
-                if (appState.currentPage == 'config') configScreen(),
-                if (appState.currentPage == 'exceptions') exceptionsScreen(),
-                if (appState.currentPage == 'expenses') expensesScreen(),
-                if (appState.currentPage == 'summary') summaryScreen(),
-                if (appState.currentPage == 'household income summary')
-                  householdIncomeSummaryScreen(),
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 500),
+                  transitionBuilder: (Widget child, Animation<double> animation) {
+                    return FadeTransition(
+                      opacity: animation,
+                      child: child,
+                    );
+                  },
+                  child: _buildCurrentPage(appState),
+                ),
               ],
             ),
           ),
