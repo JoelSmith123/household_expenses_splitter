@@ -1,38 +1,34 @@
 import 'package:flutter/cupertino.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-class ExceptionSets {
-  Set housematesWithExceptions;
-  Set categoriesWithExceptions;
-
-  ExceptionSets({
-    required this.housematesWithExceptions,
-    required this.categoriesWithExceptions,
-  });
-}
-
 class AppState extends ChangeNotifier {
-  final SupabaseClient supabase = Supabase.instance.client;
+  late final SupabaseClient supabase;
 
   // constructor
-  AppState() {
-    _init();
-  }
+  AppState();
 
   Future<void> _init() async {
-    _initializeControllers();
-    await getData();
-
     // initialize UI/view after controller initialization and data retrieval
     initializeView();
   }
 
   Future<void> getData() async {
-    await Future.wait([
-      getHousemates(),
-      getExpenses(),
-      getExceptions(),
-    ]);
+    try {
+      await Future.wait([
+        getHousemates(),
+        getExpenses(),
+        getExceptions(),
+      ]);
+      _initializeControllers();
+    } catch (e, stackTrace) {
+      currentErrorToShow = GenericError(
+        isCurrent: true,
+        title: e.toString(),
+        message: stackTrace.toString(),
+      );
+      navigateToPage('error');
+      notifyListeners();
+    }
   }
 
   // controllers
@@ -68,6 +64,33 @@ class AppState extends ChangeNotifier {
     super.dispose();
   }
 
+  //
+  // supabase initializations
+  //
+
+  bool supabaseInitCompleted = false;
+  void setSupabaseReady(bool isReady) {
+    if (isReady) {
+      supabase = Supabase.instance.client;
+      _init();
+    }
+    supabaseInitCompleted = isReady;
+    notifyListeners();
+  }
+
+  void setInitError(Object e, StackTrace stackTrace) {
+    currentErrorToShow = GenericError(
+      isCurrent: true,
+      title: e.toString(),
+      message: stackTrace.toString(),
+    );
+    notifyListeners();
+  }
+
+  //
+  // initializeView()
+  //
+
   void initializeView() {
     // delay for testing
     Future.delayed(const Duration(seconds: 2), () => navigateToPage('signin'));
@@ -76,24 +99,30 @@ class AppState extends ChangeNotifier {
     // navigateToPage('signin');
   }
 
-  // brightness mode
-  bool brightnessModeSwitchValue = false;
+  //
+  // auth
+  //
+
   bool signedIn = false;
+  void setSignedIn(bool newSignedInStatus) async {
+    if (signedIn == false && newSignedInStatus == true) {
+      await getData();
+      navigateToPage('start');
+    }
 
-  bool showNavigationBar = false;
-
-  void toggleBrightnessMode() {
-    brightnessModeSwitchValue = !brightnessModeSwitchValue;
+    signedIn = newSignedInStatus;
     notifyListeners();
   }
 
-  void setSignedIn(bool value) {
-    signedIn = value;
-    notifyListeners();
+  //
+  // brightness mode
+  //
 
-    // if (signedIn == true && currentPage == 'signin') {
-    //   navigateToPage('start');
-    // }
+  bool brightnessModeSwitchValue = false;
+  bool showNavigationBar = false;
+  void toggleBrightnessMode() {
+    brightnessModeSwitchValue = !brightnessModeSwitchValue;
+    notifyListeners();
   }
 
   void updateBrightnessMode(BuildContext context) {
@@ -344,4 +373,37 @@ class AppState extends ChangeNotifier {
     currentPage = page;
     notifyListeners();
   }
+
+  // error handling methods
+  GenericError? currentErrorToShow;
+  void createErrorObject(bool isCurrent, String title, String message) {
+    GenericError error =
+        GenericError(isCurrent: isCurrent, title: title, message: message);
+    if (isCurrent) {
+      currentErrorToShow = error;
+    }
+  }
+}
+
+// utility classes
+class ExceptionSets {
+  Set housematesWithExceptions;
+  Set categoriesWithExceptions;
+
+  ExceptionSets({
+    required this.housematesWithExceptions,
+    required this.categoriesWithExceptions,
+  });
+}
+
+class GenericError {
+  bool isCurrent;
+  final String title;
+  final String message;
+
+  GenericError({
+    this.isCurrent = true,
+    required this.title,
+    this.message = '',
+  });
 }
