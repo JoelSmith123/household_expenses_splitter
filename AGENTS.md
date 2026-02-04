@@ -13,3 +13,7 @@ State is managed centrally in a single lib/providers/app_state.dart file, contai
 Styles (such as fonts or colors) should be stored centrally, to improve future scalability and ease of changing the styles later on. 
 
 Always use Cupertino styling. Do not use Material unless there is no Cupertino alternative, and then in that case, get permission first. 
+
+## Database
+
+In the MCP-connected Supabase, use its schema and datatable for figuring out functionality that utilizes that server. 
