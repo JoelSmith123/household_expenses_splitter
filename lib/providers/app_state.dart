@@ -1,5 +1,8 @@
 import 'package:flutter/cupertino.dart';
+import 'package:country_picker/country_picker.dart';
+import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../config/app_config.dart';
 
 class AppState extends ChangeNotifier {
   late final SupabaseClient supabase;
@@ -11,6 +14,9 @@ class AppState extends ChangeNotifier {
     // initialize UI/view after controller initialization and data retrieval
     initializeView();
   }
+
+  bool isBusy = false;
+  String? lastErrorMessage;
 
   Future<void> getData() async {
     try {
@@ -105,13 +111,451 @@ class AppState extends ChangeNotifier {
 
   bool signedIn = false;
   void setSignedIn(bool newSignedInStatus) async {
-    if (signedIn == false && newSignedInStatus == true) {
-      await getData();
-      navigateToPage('start');
-    }
-
     signedIn = newSignedInStatus;
     notifyListeners();
+  }
+
+  String? currentUserName;
+  int? currentUserId;
+  int? currentHouseholdId;
+  String? currentUserPhoneE164;
+  String? householdName;
+
+  //
+  // onboarding/invites
+  //
+
+  PendingInvite? pendingInvite;
+  String? pendingInviteHouseholdName;
+  List<String> pendingInviteInviterNames = [];
+
+  //
+  // contacts/invites selection
+  //
+
+  List<InviteContact> availableContacts = [];
+  List<InviteContact> selectedContacts = [];
+  bool contactsLoading = false;
+  Country? selectedCountry;
+
+  //
+  // onboarding/auth orchestration
+  //
+
+  Future<void> handleSignedIn() async {
+    if (!supabaseInitCompleted) return;
+    final authUser = supabase.auth.currentUser;
+    if (authUser == null) return;
+
+    currentUserPhoneE164 = authUser.phone;
+    if (AppConfig.enablePushNotifications) {
+      // OneSignal registration requires APNs setup. Keeping for future use.
+      // await registerOneSignalPlayerId();
+    }
+    if (_applyDebugOverrideIfNeeded()) {
+      return;
+    }
+    await ensureUserProfile();
+  }
+
+  Future<void> registerOneSignalPlayerId() async {
+    // Pseudocode:
+    // final playerId = OneSignal.User.pushSubscription.id;
+    // if (playerId == null || playerId.isEmpty) return;
+    // oneSignalPlayerId = playerId;
+    // if (currentUserId != null) {
+    //   await supabase
+    //       .from('users')
+    //       .update({'onesignal_player_id': playerId}).eq('id', currentUserId!);
+    // }
+  }
+
+  String? oneSignalPlayerId;
+
+  Future<void> ensureUserProfile() async {
+    final authUser = supabase.auth.currentUser;
+    if (authUser == null) return;
+    final authId = authUser.id;
+    final phone = currentUserPhoneE164;
+
+    final existingByAuth = await supabase
+        .from('users')
+        .select()
+        .eq('auth_user_id', authId)
+        .maybeSingle();
+
+    if (existingByAuth != null) {
+      currentUserId = existingByAuth['id'] as int?;
+      currentUserName = existingByAuth['display_name'] as String?;
+      currentHouseholdId = existingByAuth['household_id'] as int?;
+      if (AppConfig.enablePushNotifications) {
+        // OneSignal registration update (requires APNs setup).
+        // if (oneSignalPlayerId != null && currentUserId != null) {
+        //   await supabase.from('users').update({
+        //     'onesignal_player_id': oneSignalPlayerId,
+        //   }).eq('id', currentUserId!);
+        // }
+      }
+      if (currentUserName == null || currentUserName!.trim().isEmpty) {
+        navigateToPage('onboarding profile');
+        return;
+      }
+      await checkPendingInvite();
+      return;
+    }
+
+    if (phone != null && phone.isNotEmpty) {
+      final existingByPhone = await supabase
+          .from('users')
+          .select()
+          .eq('phone_e164', phone)
+          .maybeSingle();
+      if (existingByPhone != null) {
+        currentUserId = existingByPhone['id'] as int?;
+        currentUserName = existingByPhone['display_name'] as String?;
+        currentHouseholdId = existingByPhone['household_id'] as int?;
+        if (currentUserName == null || currentUserName!.trim().isEmpty) {
+          navigateToPage('onboarding profile');
+          return;
+        }
+        await supabase.from('users').update({
+          'auth_user_id': authId,
+          // 'onesignal_player_id': oneSignalPlayerId,
+        }).eq('id', currentUserId!);
+        await checkPendingInvite();
+        return;
+      }
+    }
+
+    navigateToPage('onboarding profile');
+  }
+
+  Future<void> completeProfileName(String name) async {
+    final authUser = supabase.auth.currentUser;
+    if (authUser == null) return;
+
+    isBusy = true;
+    notifyListeners();
+    try {
+      final phone = currentUserPhoneE164;
+      final data = await supabase.from('users').upsert({
+        'auth_user_id': authUser.id,
+        'display_name': name,
+        'phone_e164': phone,
+        // 'onesignal_player_id': oneSignalPlayerId,
+      }).select().maybeSingle();
+
+      if (data != null) {
+        currentUserId = data['id'] as int?;
+        currentUserName = data['display_name'] as String?;
+        currentHouseholdId = data['household_id'] as int?;
+      }
+      await checkPendingInvite();
+    } finally {
+      isBusy = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> checkPendingInvite() async {
+    final phone = currentUserPhoneE164;
+    if (phone == null || phone.isEmpty) {
+      navigateToPage('onboarding add members');
+      return;
+    }
+
+    final inviteData = await supabase
+        .from('household_invites')
+        .select()
+        .eq('invited_phone_e164', phone)
+        .eq('status', 'pending')
+        .order('created_at', ascending: false)
+        .limit(1)
+        .maybeSingle();
+
+    if (inviteData == null) {
+      navigateToPage('onboarding add members');
+      return;
+    }
+
+    pendingInvite = PendingInvite.fromJson(inviteData);
+    await _loadInviteContext();
+    navigateToPage('onboarding invite');
+  }
+
+  Future<void> _loadInviteContext() async {
+    if (pendingInvite == null) return;
+    final householdData = await supabase
+        .from('households')
+        .select('name')
+        .eq('id', pendingInvite!.householdId)
+        .maybeSingle();
+    pendingInviteHouseholdName =
+        householdData == null ? null : householdData['name'] as String?;
+
+    if (pendingInvite!.inviterUserIds.isNotEmpty) {
+      final inviterData = await supabase
+          .from('users')
+          .select('id,display_name')
+          .inFilter('id', pendingInvite!.inviterUserIds);
+      pendingInviteInviterNames = inviterData
+          .map<String>((row) => row['display_name'] as String? ?? 'Unknown')
+          .toList();
+    } else {
+      pendingInviteInviterNames = [];
+    }
+  }
+
+  Future<void> acceptInvite() async {
+    if (pendingInvite == null || currentUserId == null) return;
+    isBusy = true;
+    notifyListeners();
+    try {
+      await supabase.from('household_invites').update({
+        'status': 'accepted',
+        'responded_at': DateTime.now().toIso8601String(),
+      }).eq('id', pendingInvite!.id);
+
+      await supabase
+          .from('users')
+          .update({'household_id': pendingInvite!.householdId}).eq(
+              'id', currentUserId!);
+
+      currentHouseholdId = pendingInvite!.householdId;
+
+      if (AppConfig.enablePushNotifications) {
+        // OneSignal/APNs not configured. Enable when ready:
+        // await supabase.functions.invoke('send-invite-accepted-push', body: {
+        //   'household_id': pendingInvite!.householdId,
+        //   'inviter_user_ids': pendingInvite!.inviterUserIds,
+        //   'accepted_user_name': currentUserName ?? 'Someone',
+        // });
+      }
+
+      await getData();
+      navigateToPage('start');
+    } finally {
+      isBusy = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> declineInvite(String? message) async {
+    if (pendingInvite == null) return;
+    isBusy = true;
+    notifyListeners();
+    try {
+      await supabase.from('household_invites').update({
+        'status': 'declined',
+        'responded_at': DateTime.now().toIso8601String(),
+        'decline_message': message,
+      }).eq('id', pendingInvite!.id);
+
+      await supabase.auth.signOut();
+      resetToSigninFlow();
+    } finally {
+      isBusy = false;
+      notifyListeners();
+    }
+  }
+
+  void resetToSigninFlow() {
+    signedIn = false;
+    pendingInvite = null;
+    pendingInviteHouseholdName = null;
+    pendingInviteInviterNames = [];
+    currentUserId = null;
+    currentUserName = null;
+    currentHouseholdId = null;
+    selectedContacts = [];
+    availableContacts = [];
+    householdName = null;
+    navigateToPage('logo');
+    Future.delayed(const Duration(seconds: 2), () => navigateToPage('signin'));
+  }
+
+  void setHouseholdName(String name) {
+    householdName = name;
+    notifyListeners();
+  }
+
+  Future<void> createHouseholdAndInvites() async {
+    if (currentUserId == null || householdName == null) return;
+    if (selectedContacts.isEmpty) return;
+    isBusy = true;
+    notifyListeners();
+    try {
+      final householdData = await supabase
+          .from('households')
+          .insert({'name': householdName}).select().maybeSingle();
+      if (householdData == null) return;
+
+      final householdId = householdData['id'] as int;
+      currentHouseholdId = householdId;
+
+      await supabase
+          .from('users')
+          .update({'household_id': householdId}).eq('id', currentUserId!);
+
+      final inviteRows = selectedContacts
+          .map((contact) => {
+                'household_id': householdId,
+                'invited_phone_e164': contact.phoneE164,
+                'inviter_user_ids': [currentUserId],
+                'status': 'pending',
+              })
+          .toList();
+
+      await supabase.from('household_invites').upsert(inviteRows);
+
+      await supabase.functions.invoke('send-household-invite', body: {
+        'household_id': householdId,
+        'inviter_user_ids': [currentUserId],
+        'invites': selectedContacts
+            .map((contact) => {
+                  'phone_e164': contact.phoneE164,
+                  'display_name': contact.displayName,
+                })
+            .toList(),
+      });
+
+      await getData();
+      navigateToPage('onboarding invite sent');
+    } finally {
+      isBusy = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> loadContacts() async {
+    if (contactsLoading) return;
+    contactsLoading = true;
+    lastErrorMessage = null;
+    availableContacts = [];
+    notifyListeners();
+    try {
+      final permissionGranted = await FlutterContacts.requestPermission();
+      if (!permissionGranted) {
+        lastErrorMessage = 'Contacts permission denied.';
+        return;
+      }
+      final contacts = await FlutterContacts.getContacts(
+        withProperties: true,
+        withThumbnail: false,
+      );
+      availableContacts = contacts
+          .where((contact) => contact.phones.isNotEmpty)
+          .map((contact) {
+            final phoneDisplay = contact.phones.first.number;
+            final phoneE164 = normalizeToE164(
+              phoneDisplay,
+              selectedCountry: selectedCountry,
+            );
+            return InviteContact(
+              id: contact.id,
+              displayName: contact.displayName,
+              phoneE164: phoneE164,
+              phoneDisplay: phoneDisplay,
+            );
+          })
+          .where((contact) => contact.phoneE164.startsWith('+'))
+          .toList();
+    } catch (e) {
+      lastErrorMessage = 'Unable to load contacts.';
+    } finally {
+      contactsLoading = false;
+      notifyListeners();
+    }
+  }
+
+  void toggleContactSelection(InviteContact contact) {
+    lastErrorMessage = null;
+    final existingIndex =
+        selectedContacts.indexWhere((item) => item.id == contact.id);
+    if (existingIndex >= 0) {
+      selectedContacts.removeAt(existingIndex);
+    } else {
+      selectedContacts.add(contact);
+    }
+    notifyListeners();
+  }
+
+  void addManualContact(String name, String phoneRaw) {
+    lastErrorMessage = null;
+    if (name.isEmpty || phoneRaw.isEmpty) {
+      lastErrorMessage = 'Name and phone are required.';
+      notifyListeners();
+      return;
+    }
+    final phoneE164 = normalizeToE164(phoneRaw, selectedCountry: selectedCountry);
+    if (!phoneE164.startsWith('+')) {
+      lastErrorMessage = 'Please select a country or enter +country code.';
+      notifyListeners();
+      return;
+    }
+    final id = 'manual-${DateTime.now().millisecondsSinceEpoch}';
+    selectedContacts.add(InviteContact(
+      id: id,
+      displayName: name,
+      phoneE164: phoneE164,
+      phoneDisplay: phoneRaw,
+    ));
+    notifyListeners();
+  }
+
+  void setSelectedCountry(Country country) {
+    selectedCountry = country;
+    notifyListeners();
+  }
+
+  String normalizeToE164(String raw, {Country? selectedCountry}) {
+    final trimmed = raw.trim();
+    if (trimmed.startsWith('+')) {
+      return trimmed.replaceAll(RegExp(r'[^0-9+]'), '');
+    }
+    final digits = trimmed.replaceAll(RegExp(r'\\D'), '');
+    if (selectedCountry != null && selectedCountry.phoneCode.isNotEmpty) {
+      return '+${selectedCountry.phoneCode}$digits';
+    }
+    return digits;
+  }
+
+  //
+  // developer overrides
+  //
+
+  bool _applyDebugOverrideIfNeeded() {
+    if (!AppConfig.enableDebugOverrides) return false;
+    final overridePage = AppConfig.debugOverridePage;
+    if (overridePage == null || overridePage.isEmpty) return false;
+
+    switch (overridePage) {
+      case 'onboarding invite':
+        pendingInviteHouseholdName = 'The Cool Kids';
+        pendingInviteInviterNames = ['Rob', 'Billy'];
+        pendingInvite = PendingInvite(
+          id: -1,
+          householdId: -1,
+          inviterUserIds: const [1, 2],
+        );
+        break;
+      case 'onboarding add members':
+        householdName = null;
+        break;
+      case 'onboarding contacts':
+        householdName = householdName ?? 'Test Household';
+        break;
+      case 'onboarding invite sent':
+        householdName = householdName ?? 'Test Household';
+        break;
+      case 'onboarding profile':
+      case 'start':
+      default:
+        break;
+    }
+
+    navigateToPage(overridePage);
+    return true;
   }
 
   //
@@ -173,20 +617,38 @@ class AppState extends ChangeNotifier {
   // core functionality state
   List housemates = [];
   Future<void> getHousemates() async {
-    final data = await supabase.from('users').select().eq('household_id', 1);
+    if (currentHouseholdId == null) {
+      housemates = [];
+      return;
+    }
+    final data =
+        await supabase.from('users').select().eq('household_id', currentHouseholdId!);
     housemates = data;
   }
 
   List expenses = [];
   Future<void> getExpenses() async {
-    final data = await supabase.from('expenses').select().eq('household_id', 1);
+    if (currentHouseholdId == null) {
+      expenses = [];
+      return;
+    }
+    final data = await supabase
+        .from('expenses')
+        .select()
+        .eq('household_id', currentHouseholdId!);
     expenses = data;
   }
 
   List exceptions = [];
   Future<void> getExceptions() async {
-    final data =
-        await supabase.from('exceptions').select().eq('household_id', 1);
+    if (currentHouseholdId == null) {
+      exceptions = [];
+      return;
+    }
+    final data = await supabase
+        .from('exceptions')
+        .select()
+        .eq('household_id', currentHouseholdId!);
     exceptions = data;
   }
 
@@ -405,5 +867,43 @@ class GenericError {
     this.isCurrent = true,
     required this.title,
     this.message = '',
+  });
+}
+
+class PendingInvite {
+  final int id;
+  final int householdId;
+  final List<int> inviterUserIds;
+
+  PendingInvite({
+    required this.id,
+    required this.householdId,
+    required this.inviterUserIds,
+  });
+
+  factory PendingInvite.fromJson(Map<String, dynamic> data) {
+    final inviterIds = (data['inviter_user_ids'] as List?)
+            ?.map((value) => value as int)
+            .toList() ??
+        [];
+    return PendingInvite(
+      id: data['id'] as int,
+      householdId: data['household_id'] as int,
+      inviterUserIds: inviterIds,
+    );
+  }
+}
+
+class InviteContact {
+  final String id;
+  final String displayName;
+  final String phoneE164;
+  final String phoneDisplay;
+
+  InviteContact({
+    required this.id,
+    required this.displayName,
+    required this.phoneE164,
+    required this.phoneDisplay,
   });
 }

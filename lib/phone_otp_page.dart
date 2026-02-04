@@ -56,6 +56,7 @@ class _PhoneOtpPageState extends State<PhoneOtpPage> {
     _otpCtrl.clear();
     setState(() => _codeSent = false);
     context.read<AppState>().setSignedIn(true);
+    await context.read<AppState>().handleSignedIn();
   }
 
   @override

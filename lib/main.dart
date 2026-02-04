@@ -15,6 +15,13 @@ import 'start_screen.dart';
 import 'household_income_summary_screen.dart';
 import 'expenses_screen.dart';
 import 'summary_screen.dart';
+import 'onboarding_profile_screen.dart';
+import 'onboarding_invite_screen.dart';
+import 'onboarding_add_members_screen.dart';
+import 'onboarding_contacts_screen.dart';
+import 'onboarding_invite_sent_screen.dart';
+import 'styles/app_styles.dart';
+import 'config/app_config.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -58,6 +65,12 @@ class _AppInitGateState extends State<AppInitGate> {
         anonKey:
             'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indmb3R5YnNydWx5Z2ZhdWNqY3BhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzgzMDkwMzQsImV4cCI6MjA1Mzg4NTAzNH0.kudmu74JQfGfQJ1_63tialCwtkPKOdg9XM08liuCpnk',
       );
+      if (AppConfig.enablePushNotifications) {
+        // OneSignal initialization (requires APNs setup). Keeping for future use.
+        // Example:
+        // OneSignal.initialize(AppConfig.oneSignalAppId);
+        // OneSignal.Notifications.requestPermission(true);
+      }
 
       appState.setSupabaseReady(true);
     } catch (e, stackTrace) {
@@ -88,27 +101,27 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     // Provider.of<AppState>(context, listen: false).updateBrightnessMode(context);
 
-    return Consumer<AppState>(builder: (context, appState, child) {
-      return CupertinoApp(
-        debugShowCheckedModeBanner: false,
-        localizationsDelegates: const [
-          GlobalMaterialLocalizations
-              .delegate, // <-- gives MaterialLocalizations
-          GlobalWidgetsLocalizations.delegate,
-          DefaultCupertinoLocalizations.delegate,
-        ],
-        supportedLocales: const [
-          Locale('en', 'US'),
-        ],
-        title: 'Flutter Demo',
-        theme: CupertinoThemeData(
-          brightness: appState.brightnessModeSwitchValue
-              ? Brightness.dark
-              : Brightness.light,
-        ),
-        home: const AppInitGate(child: MyHomePage()),
-      );
-    });
+    return Consumer<AppState>(
+      builder: (context, appState, child) {
+        return CupertinoApp(
+          debugShowCheckedModeBanner: false,
+          localizationsDelegates: const [
+            GlobalMaterialLocalizations
+                .delegate, // <-- gives MaterialLocalizations
+            GlobalWidgetsLocalizations.delegate,
+            DefaultCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [Locale('en', 'US')],
+          title: 'Flutter Demo',
+          theme: CupertinoThemeData(
+            brightness: appState.brightnessModeSwitchValue
+                ? Brightness.dark
+                : Brightness.light,
+          ),
+          home: const AppInitGate(child: MyHomePage()),
+        );
+      },
+    );
   }
 }
 
@@ -149,15 +162,27 @@ class MyHomePage extends StatelessWidget {
       case 'household income summary':
         screen = householdIncomeSummaryScreen();
         break;
+      case 'onboarding profile':
+        screen = onboardingProfileScreen();
+        break;
+      case 'onboarding invite':
+        screen = onboardingInviteScreen();
+        break;
+      case 'onboarding add members':
+        screen = onboardingAddMembersScreen();
+        break;
+      case 'onboarding contacts':
+        screen = onboardingContactsScreen();
+        break;
+      case 'onboarding invite sent':
+        screen = onboardingInviteSentScreen();
+        break;
       default:
         screen = logoScreen();
         break;
     }
 
-    return KeyedSubtree(
-      key: ValueKey(appState.currentPage),
-      child: screen,
-    );
+    return KeyedSubtree(key: ValueKey(appState.currentPage), child: screen);
   }
 
   @override
@@ -167,59 +192,61 @@ class MyHomePage extends StatelessWidget {
       'start',
       'expenses',
       'summary',
-      'household income summary'
+      'household income summary',
     ];
-    return Consumer<AppState>(builder: (context, appState, child) {
-      return CupertinoPageScaffold(
-        backgroundColor: Color(0xFFf9f5d2),
-        navigationBar: appState.showNavigationBar
-            ? CupertinoNavigationBar(
-                leading: Builder(
-                  builder: (BuildContext context) {
-                    IconData icon;
-                    if (flowPages.contains(appState.currentPage)) {
-                      icon = CupertinoIcons.bars;
-                    } else if (appState.currentPage == 'menu') {
-                      icon = CupertinoIcons.clear;
-                    } else if (appState.currentPage == 'config' ||
-                        appState.currentPage == 'exceptions') {
-                      icon = CupertinoIcons.back;
-                    } else {
-                      icon = CupertinoIcons.clear;
-                    }
-                    return CupertinoButton(
-                      padding: EdgeInsets.zero,
-                      child: Icon(icon),
-                      onPressed: () {
-                        appState.handleMenuButtonPressed(icon);
-                      },
-                    );
-                  },
-                ),
-              )
-            : null,
-        child: SafeArea(
-          minimum: const EdgeInsets.all(20.0),
-          child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 500),
-                  transitionBuilder:
-                      (Widget child, Animation<double> animation) {
-                    return FadeTransition(
-                      opacity: animation,
-                      child: child,
-                    );
-                  },
-                  child: _buildCurrentPage(appState),
-                ),
-              ],
+    return Consumer<AppState>(
+      builder: (context, appState, child) {
+        return CupertinoPageScaffold(
+          backgroundColor: AppColors.cream,
+          navigationBar: appState.showNavigationBar
+              ? CupertinoNavigationBar(
+                  leading: Builder(
+                    builder: (BuildContext context) {
+                      IconData icon;
+                      if (flowPages.contains(appState.currentPage)) {
+                        icon = CupertinoIcons.bars;
+                      } else if (appState.currentPage == 'menu') {
+                        icon = CupertinoIcons.clear;
+                      } else if (appState.currentPage == 'config' ||
+                          appState.currentPage == 'exceptions') {
+                        icon = CupertinoIcons.back;
+                      } else {
+                        icon = CupertinoIcons.clear;
+                      }
+                      return CupertinoButton(
+                        padding: EdgeInsets.zero,
+                        child: Icon(icon),
+                        onPressed: () {
+                          appState.handleMenuButtonPressed(icon);
+                        },
+                      );
+                    },
+                  ),
+                )
+              : null,
+          child: SafeArea(
+            minimum: const EdgeInsets.all(20.0),
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 500),
+                    transitionBuilder:
+                        (Widget child, Animation<double> animation) {
+                          return FadeTransition(
+                            opacity: animation,
+                            child: child,
+                          );
+                        },
+                    child: _buildCurrentPage(appState),
+                  ),
+                ],
+              ),
             ),
           ),
-        ),
-      );
-    });
+        );
+      },
+    );
   }
 }
