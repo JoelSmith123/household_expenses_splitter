@@ -16,6 +16,8 @@ Styles (such as fonts or colors) should be stored centrally, to improve future s
 
 Always use Cupertino styling. Do not use Material unless there is no Cupertino alternative, and then in that case, get permission first. 
 
+For colors and fonts, use the existing ones that are already being used. 
+
 ## Database
 
 In the MCP-connected Supabase, use its schema and datatable for figuring out functionality that utilizes that server. 
