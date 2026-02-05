@@ -5,6 +5,7 @@ import 'providers/app_state.dart';
 Widget startScreen() {
   return Consumer<AppState>(builder: (context, appState, child) {
     return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
       children: <Widget>[
         const Text(
           'First, enter the total net income of the month for each housemate.',

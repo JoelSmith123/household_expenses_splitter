@@ -225,22 +225,20 @@ class MyHomePage extends StatelessWidget {
               : null,
           child: SafeArea(
             minimum: const EdgeInsets.all(20.0),
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 500),
-                    transitionBuilder:
-                        (Widget child, Animation<double> animation) {
-                          return FadeTransition(
-                            opacity: animation,
-                            child: child,
-                          );
-                        },
-                    child: _buildCurrentPage(appState),
-                  ),
-                ],
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 500),
+              transitionBuilder:
+                  (Widget child, Animation<double> animation) {
+                    return FadeTransition(
+                      opacity: animation,
+                      child: child,
+                    );
+                  },
+              child: SizedBox.expand(
+                child: Align(
+                  alignment: Alignment.center,
+                  child: _buildCurrentPage(appState),
+                ),
               ),
             ),
           ),

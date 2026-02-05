@@ -59,6 +59,7 @@ class OnboardingInviteScreen extends StatelessWidget {
       final inviterText = _buildInviterText(appState.pendingInviteInviterNames);
       final householdName = appState.pendingInviteHouseholdName ?? 'their';
       return Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text('You\'ve been invited', style: AppText.headline()),

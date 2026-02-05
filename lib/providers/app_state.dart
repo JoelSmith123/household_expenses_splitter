@@ -1,5 +1,4 @@
 import 'package:flutter/cupertino.dart';
-import 'package:country_picker/country_picker.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../config/app_config.dart';
@@ -120,6 +119,7 @@ class AppState extends ChangeNotifier {
   int? currentHouseholdId;
   String? currentUserPhoneE164;
   String? householdName;
+  String? pendingProfileName;
 
   //
   // onboarding/invites
@@ -136,7 +136,6 @@ class AppState extends ChangeNotifier {
   List<InviteContact> availableContacts = [];
   List<InviteContact> selectedContacts = [];
   bool contactsLoading = false;
-  Country? selectedCountry;
 
   //
   // onboarding/auth orchestration
@@ -231,33 +230,71 @@ class AppState extends ChangeNotifier {
   }
 
   Future<void> completeProfileName(String name) async {
+    if (currentUserId != null) {
+      isBusy = true;
+      notifyListeners();
+      try {
+        await supabase
+            .from('users')
+            .update({'display_name': name}).eq('id', currentUserId!);
+        currentUserName = name;
+        if (currentHouseholdId != null) {
+          await getData();
+          navigateToPage('start');
+        } else {
+          await checkPendingInvite();
+        }
+      } finally {
+        isBusy = false;
+        notifyListeners();
+      }
+      return;
+    }
+
+    pendingProfileName = name;
+    currentUserName = name;
+    notifyListeners();
+    await checkPendingInvite();
+  }
+
+  Future<void> _ensureUserForHousehold(int householdId) async {
+    if (currentUserId != null) {
+      if (currentHouseholdId != householdId) {
+        await supabase
+            .from('users')
+            .update({'household_id': householdId}).eq('id', currentUserId!);
+        currentHouseholdId = householdId;
+      }
+      return;
+    }
+
     final authUser = supabase.auth.currentUser;
     if (authUser == null) return;
+    final displayName = pendingProfileName ?? currentUserName;
+    if (displayName == null || displayName.trim().isEmpty) return;
 
-    isBusy = true;
-    notifyListeners();
-    try {
-      final phone = currentUserPhoneE164;
-      final data = await supabase.from('users').upsert({
-        'auth_user_id': authUser.id,
-        'display_name': name,
-        'phone_e164': phone,
-        // 'onesignal_player_id': oneSignalPlayerId,
-      }).select().maybeSingle();
+    final data = await supabase.from('users').upsert({
+      'auth_user_id': authUser.id,
+      'display_name': displayName,
+      'phone_e164': currentUserPhoneE164,
+      'household_id': householdId,
+      // 'onesignal_player_id': oneSignalPlayerId,
+    }).select().maybeSingle();
 
-      if (data != null) {
-        currentUserId = data['id'] as int?;
-        currentUserName = data['display_name'] as String?;
-        currentHouseholdId = data['household_id'] as int?;
-      }
-      await checkPendingInvite();
-    } finally {
-      isBusy = false;
-      notifyListeners();
+    if (data != null) {
+      currentUserId = data['id'] as int?;
+      currentUserName = data['display_name'] as String?;
+      currentHouseholdId = data['household_id'] as int?;
     }
   }
 
   Future<void> checkPendingInvite() async {
+    if (currentHouseholdId != null) {
+      await getData();
+      navigateToPage('start');
+      return;
+    }
+
     final phone = currentUserPhoneE164;
     if (phone == null || phone.isEmpty) {
       navigateToPage('onboarding add members');
@@ -307,21 +344,16 @@ class AppState extends ChangeNotifier {
   }
 
   Future<void> acceptInvite() async {
-    if (pendingInvite == null || currentUserId == null) return;
+    if (pendingInvite == null) return;
     isBusy = true;
     notifyListeners();
     try {
+      await _ensureUserForHousehold(pendingInvite!.householdId);
+      if (currentUserId == null) return;
       await supabase.from('household_invites').update({
         'status': 'accepted',
         'responded_at': DateTime.now().toIso8601String(),
       }).eq('id', pendingInvite!.id);
-
-      await supabase
-          .from('users')
-          .update({'household_id': pendingInvite!.householdId}).eq(
-              'id', currentUserId!);
-
-      currentHouseholdId = pendingInvite!.householdId;
 
       if (AppConfig.enablePushNotifications) {
         // OneSignal/APNs not configured. Enable when ready:
@@ -367,6 +399,7 @@ class AppState extends ChangeNotifier {
     currentUserId = null;
     currentUserName = null;
     currentHouseholdId = null;
+    pendingProfileName = null;
     selectedContacts = [];
     availableContacts = [];
     householdName = null;
@@ -380,7 +413,7 @@ class AppState extends ChangeNotifier {
   }
 
   Future<void> createHouseholdAndInvites() async {
-    if (currentUserId == null || householdName == null) return;
+    if (householdName == null) return;
     if (selectedContacts.isEmpty) return;
     isBusy = true;
     notifyListeners();
@@ -391,11 +424,8 @@ class AppState extends ChangeNotifier {
       if (householdData == null) return;
 
       final householdId = householdData['id'] as int;
-      currentHouseholdId = householdId;
-
-      await supabase
-          .from('users')
-          .update({'household_id': householdId}).eq('id', currentUserId!);
+      await _ensureUserForHousehold(householdId);
+      if (currentUserId == null) return;
 
       final inviteRows = selectedContacts
           .map((contact) => {
@@ -447,10 +477,7 @@ class AppState extends ChangeNotifier {
           .where((contact) => contact.phones.isNotEmpty)
           .map((contact) {
             final phoneDisplay = contact.phones.first.number;
-            final phoneE164 = normalizeToE164(
-              phoneDisplay,
-              selectedCountry: selectedCountry,
-            );
+            final phoneE164 = normalizeToE164(phoneDisplay);
             return InviteContact(
               id: contact.id,
               displayName: contact.displayName,
@@ -458,7 +485,6 @@ class AppState extends ChangeNotifier {
               phoneDisplay: phoneDisplay,
             );
           })
-          .where((contact) => contact.phoneE164.startsWith('+'))
           .toList();
     } catch (e) {
       lastErrorMessage = 'Unable to load contacts.';
@@ -487,7 +513,7 @@ class AppState extends ChangeNotifier {
       notifyListeners();
       return;
     }
-    final phoneE164 = normalizeToE164(phoneRaw, selectedCountry: selectedCountry);
+    final phoneE164 = normalizeToE164(phoneRaw);
     if (!phoneE164.startsWith('+')) {
       lastErrorMessage = 'Please select a country or enter +country code.';
       notifyListeners();
@@ -503,19 +529,17 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
-  void setSelectedCountry(Country country) {
-    selectedCountry = country;
-    notifyListeners();
-  }
-
-  String normalizeToE164(String raw, {Country? selectedCountry}) {
+  String normalizeToE164(String raw) {
     final trimmed = raw.trim();
     if (trimmed.startsWith('+')) {
       return trimmed.replaceAll(RegExp(r'[^0-9+]'), '');
     }
     final digits = trimmed.replaceAll(RegExp(r'\\D'), '');
-    if (selectedCountry != null && selectedCountry.phoneCode.isNotEmpty) {
-      return '+${selectedCountry.phoneCode}$digits';
+    if (digits.length == 10) {
+      return '+1$digits';
+    }
+    if (digits.length == 11 && digits.startsWith('1')) {
+      return '+$digits';
     }
     return digits;
   }

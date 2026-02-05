@@ -10,6 +10,7 @@ class OnboardingInviteSentScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<AppState>(builder: (context, appState, child) {
       return Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text('Invites sent!', style: AppText.headline()),
