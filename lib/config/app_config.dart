@@ -1,5 +1,9 @@
 class AppConfig {
-  static const String oneSignalAppId = 'REPLACE_WITH_ONESIGNAL_APP_ID';
+  static const String supabaseUrl = String.fromEnvironment('SUPABASE_URL');
+  static const String supabaseAnonKey =
+      String.fromEnvironment('SUPABASE_ANON_KEY');
+
+  static const String oneSignalAppId = String.fromEnvironment('ONESIGNAL_APP_ID');
   static const bool enablePushNotifications = false;
 
   // Developer testing overrides
