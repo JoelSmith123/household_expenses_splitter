@@ -1,0 +1,26 @@
+{
+  "name": "household_expenses_sharing_flutter_app",
+  "version": "1.0.0",
+  "description": "A new Flutter project.",
+  "main": "index.js",
+  "directories": {
+    "lib": "lib",
+    "test": "test"
+  },
+  "scripts": {
+    "run:local": "bash -c 'set -a && source .env.local && DEVICE_NAME=\"iPhone 16e\" && DEVICE_ID=$(xcrun simctl list devices available | awk -v name=\"$DEVICE_NAME\" -F \"[()]\" \"$1 ~ name {print $2; exit}\") && if [ -z \"$DEVICE_ID\" ]; then echo \"Simulator device not found: $DEVICE_NAME\"; exit 1; fi; xcrun simctl boot \"$DEVICE_ID\" >/dev/null 2>&1 || true; open -a Simulator; flutter run -d \"$DEVICE_ID\" --dart-define=SUPABASE_URL=$SUPABASE_URL --dart-define=SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY'",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JoelSmith123/household_expenses_splitter.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/JoelSmith123/household_expenses_splitter/issues"
+  },
+  "homepage": "https://github.com/JoelSmith123/household_expenses_splitter#readme"
+}

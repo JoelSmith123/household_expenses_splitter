@@ -61,9 +61,8 @@ class _AppInitGateState extends State<AppInitGate> {
 
     try {
       await Supabase.initialize(
-        url: 'https://wfotybsrulygfaucjcpa.supabase.co',
-        anonKey:
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indmb3R5YnNydWx5Z2ZhdWNqY3BhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzgzMDkwMzQsImV4cCI6MjA1Mzg4NTAzNH0.kudmu74JQfGfQJ1_63tialCwtkPKOdg9XM08liuCpnk',
+        url: AppConfig.supabaseUrl,
+        anonKey: AppConfig.supabaseAnonKey,
       );
       if (AppConfig.enablePushNotifications) {
         // OneSignal initialization (requires APNs setup). Keeping for future use.
