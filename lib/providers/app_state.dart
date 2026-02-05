@@ -1,5 +1,4 @@
 import 'package:flutter/cupertino.dart';
-import 'package:country_picker/country_picker.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../config/app_config.dart';
@@ -137,7 +136,6 @@ class AppState extends ChangeNotifier {
   List<InviteContact> availableContacts = [];
   List<InviteContact> selectedContacts = [];
   bool contactsLoading = false;
-  Country? selectedCountry;
 
   //
   // onboarding/auth orchestration
@@ -479,10 +477,7 @@ class AppState extends ChangeNotifier {
           .where((contact) => contact.phones.isNotEmpty)
           .map((contact) {
             final phoneDisplay = contact.phones.first.number;
-            final phoneE164 = normalizeToE164(
-              phoneDisplay,
-              selectedCountry: selectedCountry,
-            );
+            final phoneE164 = normalizeToE164(phoneDisplay);
             return InviteContact(
               id: contact.id,
               displayName: contact.displayName,
@@ -490,7 +485,6 @@ class AppState extends ChangeNotifier {
               phoneDisplay: phoneDisplay,
             );
           })
-          .where((contact) => contact.phoneE164.startsWith('+'))
           .toList();
     } catch (e) {
       lastErrorMessage = 'Unable to load contacts.';
@@ -519,7 +513,7 @@ class AppState extends ChangeNotifier {
       notifyListeners();
       return;
     }
-    final phoneE164 = normalizeToE164(phoneRaw, selectedCountry: selectedCountry);
+    final phoneE164 = normalizeToE164(phoneRaw);
     if (!phoneE164.startsWith('+')) {
       lastErrorMessage = 'Please select a country or enter +country code.';
       notifyListeners();
@@ -535,19 +529,17 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
-  void setSelectedCountry(Country country) {
-    selectedCountry = country;
-    notifyListeners();
-  }
-
-  String normalizeToE164(String raw, {Country? selectedCountry}) {
+  String normalizeToE164(String raw) {
     final trimmed = raw.trim();
     if (trimmed.startsWith('+')) {
       return trimmed.replaceAll(RegExp(r'[^0-9+]'), '');
     }
     final digits = trimmed.replaceAll(RegExp(r'\\D'), '');
-    if (selectedCountry != null && selectedCountry.phoneCode.isNotEmpty) {
-      return '+${selectedCountry.phoneCode}$digits';
+    if (digits.length == 10) {
+      return '+1$digits';
+    }
+    if (digits.length == 11 && digits.startsWith('1')) {
+      return '+$digits';
     }
     return digits;
   }

@@ -44,7 +44,6 @@ dependencies:
   supabase_auth_ui: ^0.5.5
   flutter_localization: ^0.3.3
   flutter_contacts: ^1.1.9
-  country_picker: ^2.0.26
   onesignal_flutter: ^5.1.6
 
 dev_dependencies:
