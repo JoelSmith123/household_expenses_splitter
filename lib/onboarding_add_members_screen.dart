@@ -37,6 +37,7 @@ class _OnboardingAddMembersScreenState
   Widget build(BuildContext context) {
     return Consumer<AppState>(builder: (context, appState, child) {
       return Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text('Welcome! Add members of your household',

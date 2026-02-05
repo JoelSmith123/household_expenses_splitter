@@ -63,6 +63,7 @@ class _OnboardingContactsScreenState extends State<OnboardingContactsScreen> {
               .toList();
 
       return Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text('Invite household members', style: AppText.headline()),

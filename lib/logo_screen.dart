@@ -3,7 +3,9 @@ import 'package:google_fonts/google_fonts.dart';
 
 Widget logoScreen() {
   return Column(
+    mainAxisAlignment: MainAxisAlignment.center,
     mainAxisSize: MainAxisSize.min,
+    crossAxisAlignment: CrossAxisAlignment.center,
     children: [
       Text(
         'Tally',

@@ -13,7 +13,7 @@ Widget exceptionsScreen() {
       exceptions = appState.exceptions;
     }
 
-    return Expanded(
+    return SizedBox.expand(
       child: Column(
         children: <Widget>[
           Padding(

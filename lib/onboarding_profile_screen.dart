@@ -36,9 +36,10 @@ class _OnboardingProfileScreenState extends State<OnboardingProfileScreen> {
     return Consumer<AppState>(
       builder: (context, appState, child) {
         return Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text('Tell us your name', style: AppText.headline()),
+            Text('What\'s your preferred name?', style: AppText.headline()),
             const SizedBox(height: AppSpacing.md),
             CupertinoTextField(
               controller: _nameController,
@@ -58,6 +59,7 @@ class _OnboardingProfileScreenState extends State<OnboardingProfileScreen> {
             CupertinoButton.filled(
               onPressed: () => _submit(appState),
               child: const Text('Continue'),
+              color: AppColors.primaryGreen,
             ),
           ],
         );
