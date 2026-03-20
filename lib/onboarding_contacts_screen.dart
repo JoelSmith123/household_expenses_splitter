@@ -32,6 +32,24 @@ class _OnboardingContactsScreenState extends State<OnboardingContactsScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          Align(
+            alignment: Alignment.centerLeft,
+            child: CupertinoButton(
+              padding: EdgeInsets.zero,
+              onPressed: () => appState.navigateToPage('onboarding add members'),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(CupertinoIcons.chevron_back,
+                      color: AppColors.primaryGreen),
+                  Text('Back',
+                      style: AppText.body()
+                          .copyWith(color: AppColors.primaryGreen)),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: AppSpacing.md),
           Text('Invite household members', style: AppText.headline()),
           const SizedBox(height: AppSpacing.sm),
           Text('Select contacts to invite.', style: AppText.caption()),
@@ -95,6 +113,7 @@ class _OnboardingContactsScreenState extends State<OnboardingContactsScreen> {
             onPressed: appState.isBusy || appState.selectedContacts.isEmpty
                 ? null
                 : () => appState.createHouseholdAndInvites(),
+            color: AppColors.primaryGreen,
             child: const Text('Complete'),
           ),
         ],

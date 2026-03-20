@@ -438,16 +438,27 @@ class AppState extends ChangeNotifier {
 
       await supabase.from('household_invites').upsert(inviteRows);
 
-      await supabase.functions.invoke('send-household-invite', body: {
-        'household_id': householdId,
-        'inviter_user_ids': [currentUserId],
-        'invites': selectedContacts
-            .map((contact) => {
-                  'phone_e164': contact.phoneE164,
-                  'display_name': contact.displayName,
-                })
-            .toList(),
-      });
+      try {
+        await supabase.functions.invoke('send-household-invite', body: {
+          'household_id': householdId,
+          'inviter_user_ids': [currentUserId],
+          'invites': selectedContacts
+              .map((contact) => {
+                    'phone_e164': contact.phoneE164,
+                    'display_name': contact.displayName,
+                  })
+              .toList(),
+        });
+      } catch (e, stackTrace) {
+        currentErrorToShow = GenericError(
+          isCurrent: true,
+          title: 'Failed to send invites',
+          message: e.toString(),
+        );
+        navigateToPage('error');
+        notifyListeners();
+        return;
+      }
 
       await getData();
       navigateToPage('onboarding invite sent');

@@ -22,6 +22,7 @@ class OnboardingInviteSentScreen extends StatelessWidget {
           const SizedBox(height: AppSpacing.lg),
           CupertinoButton.filled(
             onPressed: () => appState.navigateToPage('start'),
+            color: AppColors.primaryGreen,
             child: const Text('Continue'),
           ),
         ],

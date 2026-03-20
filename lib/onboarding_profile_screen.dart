@@ -57,9 +57,9 @@ class _OnboardingProfileScreenState extends State<OnboardingProfileScreen> {
             ],
             const SizedBox(height: AppSpacing.lg),
             CupertinoButton.filled(
-              onPressed: () => _submit(appState),
-              child: const Text('Continue'),
+              onPressed: appState.isBusy ? null : () => _submit(appState),
               color: AppColors.primaryGreen,
+              child: const Text('Continue'),
             ),
           ],
         );
