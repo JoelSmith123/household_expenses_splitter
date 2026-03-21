@@ -59,6 +59,7 @@ class OnboardingInviteScreen extends StatelessWidget {
       final inviterText = _buildInviterText(appState.pendingInviteInviterNames);
       final householdName = appState.pendingInviteHouseholdName ?? 'their';
       return Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text('You\'ve been invited', style: AppText.headline()),
@@ -70,6 +71,7 @@ class OnboardingInviteScreen extends StatelessWidget {
           const SizedBox(height: AppSpacing.lg),
           CupertinoButton.filled(
             onPressed: appState.isBusy ? null : () => appState.acceptInvite(),
+            color: AppColors.primaryGreen,
             child: const Text('Join'),
           ),
           const SizedBox(height: AppSpacing.sm),
@@ -77,7 +79,8 @@ class OnboardingInviteScreen extends StatelessWidget {
             onPressed: appState.isBusy
                 ? null
                 : () => _showDeclineDialog(context, appState),
-            child: const Text('Decline'),
+            child: Text('Decline',
+                style: AppText.body().copyWith(color: AppColors.muted)),
           ),
         ],
       );

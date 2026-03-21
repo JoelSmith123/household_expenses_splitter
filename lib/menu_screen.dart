@@ -4,7 +4,7 @@ import 'providers/app_state.dart';
 
 Widget menuScreen() {
   return Consumer<AppState>(builder: (context, appState, child) {
-    return Expanded(
+    return SizedBox.expand(
       child: Column(
         children: <Widget>[
           const Spacer(),

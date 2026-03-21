@@ -17,6 +17,17 @@ class _OnboardingAddMembersScreenState
   String? _errorText;
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final name = context.read<AppState>().householdName;
+      if (name != null && name.isNotEmpty) {
+        _householdController.text = name;
+      }
+    });
+  }
+
+  @override
   void dispose() {
     _householdController.dispose();
     super.dispose();
@@ -37,8 +48,27 @@ class _OnboardingAddMembersScreenState
   Widget build(BuildContext context) {
     return Consumer<AppState>(builder: (context, appState, child) {
       return Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          Align(
+            alignment: Alignment.centerLeft,
+            child: CupertinoButton(
+              padding: EdgeInsets.zero,
+              onPressed: () => appState.navigateToPage('onboarding profile'),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(CupertinoIcons.chevron_back,
+                      color: AppColors.primaryGreen),
+                  Text('Back',
+                      style: AppText.body()
+                          .copyWith(color: AppColors.primaryGreen)),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: AppSpacing.md),
           Text('Welcome! Add members of your household',
               style: AppText.headline()),
           const SizedBox(height: AppSpacing.md),
@@ -58,6 +88,7 @@ class _OnboardingAddMembersScreenState
           const SizedBox(height: AppSpacing.lg),
           CupertinoButton.filled(
             onPressed: appState.isBusy ? null : () => _continue(appState),
+            color: AppColors.primaryGreen,
             child: const Text('Import contacts'),
           ),
         ],

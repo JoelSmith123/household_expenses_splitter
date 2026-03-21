@@ -5,6 +5,7 @@ import 'providers/app_state.dart';
 Widget expensesScreen() {
   return Consumer<AppState>(builder: (context, appState, child) {
     return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
       children: <Widget>[
         const Text(
           'Next, enter the total amount of each household expense for the month.',

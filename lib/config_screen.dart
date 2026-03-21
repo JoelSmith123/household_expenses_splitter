@@ -6,6 +6,7 @@ Widget configScreen() {
   return Consumer<AppState>(builder: (context, appState, child) {
     final fieldText = TextEditingController();
     return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
       children: <Widget>[
         const Text('Customize Housemates'),
         for (var housemate in appState.housemates)

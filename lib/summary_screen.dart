@@ -5,6 +5,7 @@ import 'providers/app_state.dart';
 Widget summaryScreen() {
   return Consumer<AppState>(builder: (context, appState, child) {
     return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
       children: <Widget>[
         const Text('Summary'),
         for (var housemate in appState.housemates)

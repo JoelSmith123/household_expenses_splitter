@@ -5,6 +5,7 @@ import 'providers/app_state.dart';
 Widget householdIncomeSummaryScreen() {
   return Consumer<AppState>(builder: (context, appState, child) {
     return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
       children: <Widget>[
         Text(
             'Total household income: \$${appState.totalHouseholdIncome.toStringAsFixed(2)}'),

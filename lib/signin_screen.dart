@@ -14,6 +14,7 @@ Widget signinScreen() {
       return Material(
         color: Colors.transparent, // so it respects the Cupertino bg color
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
             Text(

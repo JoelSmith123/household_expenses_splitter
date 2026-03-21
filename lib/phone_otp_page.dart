@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:household_expenses_sharing_flutter_app/styles/app_styles.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'providers/app_state.dart';
@@ -70,15 +71,15 @@ class _PhoneOtpPageState extends State<PhoneOtpPage> {
           onTapOutside: (_) => FocusScope.of(context).unfocus(),
           decoration: const InputDecoration(
             labelText: 'sign in with phone number',
-            labelStyle: const TextStyle(color: Color(0xFF196719)),
+            labelStyle: const TextStyle(color: AppColors.deepGreen),
             filled: true,
             fillColor: CupertinoColors.white,
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.all(Radius.circular(12)),
-              borderSide: const BorderSide(color: Color(0xFF196719), width: 5),
+              borderSide: const BorderSide(color: AppColors.deepGreen, width: 5),
             ),
             focusedBorder: OutlineInputBorder(
-              borderSide: const BorderSide(color: Color(0xFF196719), width: 2),
+              borderSide: const BorderSide(color: AppColors.deepGreen, width: 2),
             ),
           ),
         ),
@@ -91,16 +92,16 @@ class _PhoneOtpPageState extends State<PhoneOtpPage> {
             onTapOutside: (_) => FocusScope.of(context).unfocus(),
             decoration: const InputDecoration(
               labelText: 'OTP code',
-              labelStyle: TextStyle(color: Color(0xFF196719)),
+              labelStyle: TextStyle(color: AppColors.deepGreen),
               filled: true,
               fillColor: CupertinoColors.white,
               enabledBorder: OutlineInputBorder(
                 borderSide:
-                    const BorderSide(color: Color(0xFF196719), width: 5),
+                    const BorderSide(color: AppColors.deepGreen, width: 5),
               ),
               focusedBorder: OutlineInputBorder(
                 borderSide:
-                    const BorderSide(color: Color(0xFF196719), width: 2),
+                    const BorderSide(color: AppColors.deepGreen, width: 2),
               ),
             ),
           ),
@@ -113,7 +114,7 @@ class _PhoneOtpPageState extends State<PhoneOtpPage> {
             _codeSent ? 'Verify code' : 'Send OTP code',
             style: const TextStyle(color: CupertinoColors.white),
           ),
-          color: const Color(0xFF228b22),
+          color: AppColors.primaryGreen,
         ),
       ],
     );
