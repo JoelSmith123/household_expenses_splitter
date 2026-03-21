@@ -151,9 +151,9 @@ class AppState extends ChangeNotifier {
       // OneSignal registration requires APNs setup. Keeping for future use.
       // await registerOneSignalPlayerId();
     }
-    if (_applyDebugOverrideIfNeeded()) {
-      return;
-    }
+    // if (_applyDebugOverrideIfNeeded()) {
+    //   return;
+    // }
     await ensureUserProfile();
   }
 
@@ -273,13 +273,17 @@ class AppState extends ChangeNotifier {
     final displayName = pendingProfileName ?? currentUserName;
     if (displayName == null || displayName.trim().isEmpty) return;
 
-    final data = await supabase.from('users').upsert({
-      'auth_user_id': authUser.id,
-      'display_name': displayName,
-      'phone_e164': currentUserPhoneE164,
-      'household_id': householdId,
-      // 'onesignal_player_id': oneSignalPlayerId,
-    }).select().maybeSingle();
+    final data = await supabase
+        .from('users')
+        .upsert({
+          'auth_user_id': authUser.id,
+          'display_name': displayName,
+          'phone_e164': currentUserPhoneE164,
+          'household_id': householdId,
+          // 'onesignal_player_id': oneSignalPlayerId,
+        })
+        .select()
+        .maybeSingle();
 
     if (data != null) {
       currentUserId = data['id'] as int?;
@@ -420,7 +424,9 @@ class AppState extends ChangeNotifier {
     try {
       final householdData = await supabase
           .from('households')
-          .insert({'name': householdName}).select().maybeSingle();
+          .insert({'name': householdName})
+          .select()
+          .maybeSingle();
       if (householdData == null) return;
 
       final householdId = householdData['id'] as int;
@@ -484,19 +490,17 @@ class AppState extends ChangeNotifier {
         withProperties: true,
         withThumbnail: false,
       );
-      availableContacts = contacts
-          .where((contact) => contact.phones.isNotEmpty)
-          .map((contact) {
-            final phoneDisplay = contact.phones.first.number;
-            final phoneE164 = normalizeToE164(phoneDisplay);
-            return InviteContact(
-              id: contact.id,
-              displayName: contact.displayName,
-              phoneE164: phoneE164,
-              phoneDisplay: phoneDisplay,
-            );
-          })
-          .toList();
+      availableContacts =
+          contacts.where((contact) => contact.phones.isNotEmpty).map((contact) {
+        final phoneDisplay = contact.phones.first.number;
+        final phoneE164 = normalizeToE164(phoneDisplay);
+        return InviteContact(
+          id: contact.id,
+          displayName: contact.displayName,
+          phoneE164: phoneE164,
+          phoneDisplay: phoneDisplay,
+        );
+      }).toList();
     } catch (e) {
       lastErrorMessage = 'Unable to load contacts.';
     } finally {
@@ -559,39 +563,39 @@ class AppState extends ChangeNotifier {
   // developer overrides
   //
 
-  bool _applyDebugOverrideIfNeeded() {
-    if (!AppConfig.enableDebugOverrides) return false;
-    final overridePage = AppConfig.debugOverridePage;
-    if (overridePage == null || overridePage.isEmpty) return false;
+  // bool _applyDebugOverrideIfNeeded() {
+  //   if (!AppConfig.enableDebugOverrides) return false;
+  //   final overridePage = AppConfig.debugOverridePage;
+  //   if (overridePage == null || overridePage.isEmpty) return false;
 
-    switch (overridePage) {
-      case 'onboarding invite':
-        pendingInviteHouseholdName = 'The Cool Kids';
-        pendingInviteInviterNames = ['Rob', 'Billy'];
-        pendingInvite = PendingInvite(
-          id: -1,
-          householdId: -1,
-          inviterUserIds: const [1, 2],
-        );
-        break;
-      case 'onboarding add members':
-        householdName = null;
-        break;
-      case 'onboarding contacts':
-        householdName = householdName ?? 'Test Household';
-        break;
-      case 'onboarding invite sent':
-        householdName = householdName ?? 'Test Household';
-        break;
-      case 'onboarding profile':
-      case 'start':
-      default:
-        break;
-    }
+  //   switch (overridePage) {
+  //     case 'onboarding invite':
+  //       pendingInviteHouseholdName = 'The Cool Kids';
+  //       pendingInviteInviterNames = ['Rob', 'Billy'];
+  //       pendingInvite = PendingInvite(
+  //         id: -1,
+  //         householdId: -1,
+  //         inviterUserIds: const [1, 2],
+  //       );
+  //       break;
+  //     case 'onboarding add members':
+  //       householdName = null;
+  //       break;
+  //     case 'onboarding contacts':
+  //       householdName = householdName ?? 'Test Household';
+  //       break;
+  //     case 'onboarding invite sent':
+  //       householdName = householdName ?? 'Test Household';
+  //       break;
+  //     case 'onboarding profile':
+  //     case 'start':
+  //     default:
+  //       break;
+  //   }
 
-    navigateToPage(overridePage);
-    return true;
-  }
+  //   navigateToPage(overridePage);
+  //   return true;
+  // }
 
   //
   // brightness mode
@@ -656,8 +660,10 @@ class AppState extends ChangeNotifier {
       housemates = [];
       return;
     }
-    final data =
-        await supabase.from('users').select().eq('household_id', currentHouseholdId!);
+    final data = await supabase
+        .from('users')
+        .select()
+        .eq('household_id', currentHouseholdId!);
     housemates = data;
   }
 
