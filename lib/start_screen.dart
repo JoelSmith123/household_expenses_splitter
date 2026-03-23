@@ -8,15 +8,23 @@ Widget startScreen() {
       mainAxisAlignment: MainAxisAlignment.center,
       children: <Widget>[
         const Text(
-          'First, enter the total net income of the month for each housemate.',
+          'First, enter your total net income this month.',
         ),
-        for (int i = 0; i < appState.housemates.length; i++)
-          CupertinoTextField(
-            controller: appState.housematesNetIncomeControllers[i],
-            placeholder:
-                'Enter ${appState.housemates[i]['name']}\'s net income',
-            keyboardType: TextInputType.number,
+        const Text(
+          '(This should be your entire "take-home" amount for the month, the amount that you bring home in your paycheck after taxes.)',
+          style: TextStyle(
+            fontSize: 12,
+            color: CupertinoColors.secondaryLabel,
           ),
+        ),
+        CupertinoTextField(
+          placeholder: 'Enter ${appState.currentUserName}\'s net income',
+          keyboardType: TextInputType.number,
+          onChanged: (String value) {
+            final parsed = double.tryParse(value);
+            appState.updateTempCurrentUserNetIncomeCurrentMonth(parsed);
+          },
+        ),
         Container(
           margin: const EdgeInsets.only(top: 20.0),
           width: double.infinity,

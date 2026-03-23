@@ -19,6 +19,19 @@
 
 Test login: phone `+16025459712`, OTP `123456`
 
+### Database seeding (optional)
+
+Choose based on what you're working on:
+
+| Working on... | Command |
+|---|---|
+| Core app features (expenses, categories, splits) | `npm run db:reset:household` |
+| Onboarding / auth flow | `npm run db:reset` |
+
+`db:reset:household` resets the schema and loads a two-person household ("The Test House") with categories, ~8 recent expenses, and splits. The test login user (`+16025459712`) is already a member of the household, so you land straight into the app with data.
+
+`db:reset` gives a clean slate — no users, no household — useful for testing the full signup/invite/onboarding path.
+
 ---
 
 ## First-Time Setup

@@ -10,6 +10,8 @@
   "scripts": {
     "supabase:local": "supabase start && supabase functions serve --no-verify-jwt --env-file .env.local",
     "run:local": "bash -c 'set -a && source .env.local && DEVICE_NAME=\"iPhone 16e\" && DEVICE_ID=$(xcrun simctl list devices available | awk -v name=\"$DEVICE_NAME\" -F \"[()]\" \"$1 ~ name {print $2; exit}\") && if [ -z \"$DEVICE_ID\" ]; then echo \"Simulator device not found: $DEVICE_NAME\"; exit 1; fi; xcrun simctl boot \"$DEVICE_ID\" >/dev/null 2>&1 || true; open -a Simulator; flutter run -d \"$DEVICE_ID\" --dart-define=SUPABASE_URL=$SUPABASE_URL --dart-define=SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY'",
+    "db:reset": "supabase db reset",
+    "db:reset:household": "supabase db reset; psql postgresql://postgres:postgres@127.0.0.1:54322/postgres -f supabase/seeds/household.sql",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
