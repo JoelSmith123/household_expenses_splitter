@@ -1,5 +1,10 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.48.1";
 
+const safeNotificationField = (value: string | null | undefined, max: number) =>
+  (value ?? "")
+    .replace(/[\x00-\x1F\x7F]/g, " ")
+    .slice(0, max);
+
 Deno.serve(async (req) => {
   try {
     const authHeader = req.headers.get("Authorization");
@@ -7,27 +12,44 @@ Deno.serve(async (req) => {
       return new Response("Missing Authorization header", { status: 401 });
     }
 
-    const { household_id, inviter_user_ids, accepted_user_name } =
-      await req.json();
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+
+    const userClient = createClient(supabaseUrl, anonKey, {
+      global: { headers: { Authorization: authHeader } },
+      auth: { persistSession: false },
+    });
+    const { data: { user }, error: userErr } = await userClient.auth.getUser();
+    if (userErr || !user) {
+      return new Response("Invalid token", { status: 401 });
+    }
+
+    const { household_id, inviter_user_ids } = await req.json();
 
     if (!household_id || !Array.isArray(inviter_user_ids)) {
       return new Response("Invalid payload", { status: 400 });
     }
 
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, serviceRoleKey);
 
-    const { data: household } = await supabase
-      .from("households")
-      .select("name")
-      .eq("id", household_id)
+    const { data: callerRow, error: callerErr } = await supabase
+      .from("users")
+      .select("id, household_id, display_name")
+      .eq("auth_user_id", user.id)
       .maybeSingle();
+    if (callerErr || !callerRow) {
+      return new Response("Caller has no profile", { status: 403 });
+    }
+    if (callerRow.household_id !== household_id) {
+      return new Response("Caller is not in target household", { status: 403 });
+    }
 
     const { data: inviters } = await supabase
       .from("users")
       .select("onesignal_player_id")
-      .in("id", inviter_user_ids);
+      .in("id", inviter_user_ids)
+      .eq("household_id", callerRow.household_id);
 
     const playerIds = (inviters ?? [])
       .map((row) => row.onesignal_player_id)
@@ -37,16 +59,25 @@ Deno.serve(async (req) => {
       return Response.json({ sent: 0 });
     }
 
+    const { data: household } = await supabase
+      .from("households")
+      .select("name")
+      .eq("id", household_id)
+      .maybeSingle();
+
     const appId = Deno.env.get("ONESIGNAL_APP_ID")!;
     const apiKey = Deno.env.get("ONESIGNAL_REST_API_KEY")!;
-    const householdName = household?.name ?? "your household";
+    const householdName = safeNotificationField(household?.name, 60) ||
+      "your household";
+    const acceptedUserName =
+      safeNotificationField(callerRow.display_name, 80) || "Someone";
 
     const payload = {
       app_id: appId,
       include_player_ids: playerIds,
       headings: { en: "Invite accepted" },
       contents: {
-        en: `${accepted_user_name ?? "Someone"} accepted your invite to ${householdName}.`,
+        en: `${acceptedUserName} accepted your invite to ${householdName}.`,
       },
     };
 
