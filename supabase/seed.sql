@@ -1,0 +1,2 @@
+-- Default seed: empty (clean slate for onboarding/auth development)
+-- To seed mock household data, run: npm run db:reset:household

@@ -146,7 +146,7 @@ class AppState extends ChangeNotifier {
     final authUser = supabase.auth.currentUser;
     if (authUser == null) return;
 
-    currentUserPhoneE164 = authUser.phone;
+    currentUserPhoneE164 = authUser.phone != null ? normalizeToE164(authUser.phone!) : null;
     if (AppConfig.enablePushNotifications) {
       // OneSignal registration requires APNs setup. Keeping for future use.
       // await registerOneSignalPlayerId();
@@ -173,6 +173,8 @@ class AppState extends ChangeNotifier {
 
   Future<void> ensureUserProfile() async {
     final authUser = supabase.auth.currentUser;
+    print('authUser');
+    print(authUser);
     if (authUser == null) return;
     final authId = authUser.id;
     final phone = currentUserPhoneE164;
@@ -812,7 +814,22 @@ class AppState extends ChangeNotifier {
     );
   }
 
+  //
   // core calculation methods
+  //
+
+  // updating net income for current user on the current month
+  double? currentUserNetIncomeCurrentMonth = 0;
+  void updateTempCurrentUserNetIncomeCurrentMonth(double? val) {
+    currentUserNetIncomeCurrentMonth = val;
+  }
+
+  void updateCurrentUserNetIncomeCurrentMonth() {
+    final currentHousemate =
+        housemates.firstWhere((h) => h['id'] == currentUserId);
+    currentHousemate.monthly_income = currentUserNetIncomeCurrentMonth;
+  }
+
   void updateHousematesIncome() {
     totalHouseholdIncome = 0;
 
