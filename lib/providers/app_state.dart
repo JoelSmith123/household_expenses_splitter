@@ -483,22 +483,26 @@ class AppState extends ChangeNotifier {
     availableContacts = [];
     notifyListeners();
     try {
-      final permissionGranted = await FlutterContacts.requestPermission();
+      final status =
+          await FlutterContacts.permissions.request(PermissionType.read);
+      final permissionGranted = status == PermissionStatus.granted ||
+          status == PermissionStatus.limited;
       if (!permissionGranted) {
         lastErrorMessage = 'Contacts permission denied.';
         return;
       }
-      final contacts = await FlutterContacts.getContacts(
-        withProperties: true,
-        withThumbnail: false,
+      final contacts = await FlutterContacts.getAll(
+        properties: {ContactProperty.name, ContactProperty.phone},
       );
-      availableContacts =
-          contacts.where((contact) => contact.phones.isNotEmpty).map((contact) {
+      availableContacts = contacts
+          .where((contact) =>
+              contact.id != null && contact.phones.isNotEmpty)
+          .map((contact) {
         final phoneDisplay = contact.phones.first.number;
         final phoneE164 = normalizeToE164(phoneDisplay);
         return InviteContact(
-          id: contact.id,
-          displayName: contact.displayName,
+          id: contact.id!,
+          displayName: contact.displayName ?? 'Unknown',
           phoneE164: phoneE164,
           phoneDisplay: phoneDisplay,
         );
