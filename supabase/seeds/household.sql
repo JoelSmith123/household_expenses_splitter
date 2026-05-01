@@ -7,8 +7,9 @@
 -- Drop any prior auth.users row for the test phone so re-seeding is deterministic.
 -- supabase db reset does not always wipe the auth schema; an orphaned auth row
 -- with a non-E.164 phone would prevent the new OTP login from matching the
--- seeded public.users.phone_e164.
-DELETE FROM auth.users WHERE phone IN ('+16025459712', '6025459712');
+-- seeded public.users.phone_e164. GoTrue stores phone as '16025459712' (no '+'
+-- prefix) regardless of how the client sends it, so cover both forms.
+DELETE FROM auth.users WHERE phone IN ('+16025459712', '16025459712', '6025459712');
 
 -- Household
 INSERT INTO public.households (id, name) VALUES (1, 'The Test House');
