@@ -555,7 +555,7 @@ class AppState extends ChangeNotifier {
     if (trimmed.startsWith('+')) {
       return trimmed.replaceAll(RegExp(r'[^0-9+]'), '');
     }
-    final digits = trimmed.replaceAll(RegExp(r'\\D'), '');
+    final digits = trimmed.replaceAll(RegExp(r'\D'), '');
     if (digits.length == 10) {
       return '+1$digits';
     }
