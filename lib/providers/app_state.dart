@@ -97,11 +97,18 @@ class AppState extends ChangeNotifier {
   //
 
   void initializeView() {
-    // delay for testing
-    Future.delayed(const Duration(seconds: 2), () => navigateToPage('signin'));
-
-    // without delay:
-    // navigateToPage('signin');
+    // 2s delay so the logo screen has time to render before routing.
+    Future.delayed(const Duration(seconds: 2), () async {
+      // supabase_flutter persists sessions across launches; honor that
+      // instead of unconditionally sending the user back to signin.
+      final session = supabase.auth.currentSession;
+      if (session != null) {
+        setSignedIn(true);
+        await handleSignedIn();
+        return;
+      }
+      navigateToPage('signin');
+    });
   }
 
   //
@@ -555,7 +562,7 @@ class AppState extends ChangeNotifier {
     if (trimmed.startsWith('+')) {
       return trimmed.replaceAll(RegExp(r'[^0-9+]'), '');
     }
-    final digits = trimmed.replaceAll(RegExp(r'\\D'), '');
+    final digits = trimmed.replaceAll(RegExp(r'\D'), '');
     if (digits.length == 10) {
       return '+1$digits';
     }

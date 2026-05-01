@@ -38,15 +38,17 @@ class _PhoneOtpPageState extends State<PhoneOtpPage> {
   }
 
   Future<void> _sendOtp() async {
+    final phone = context.read<AppState>().normalizeToE164(_phoneCtrl.text.trim());
     await supabase.auth.signInWithOtp(
-      phone: _phoneCtrl.text.trim(),
+      phone: phone,
     ); // sends SMS OTP
     setState(() => _codeSent = true);
   }
 
   Future<void> _verifyOtp() async {
+    final phone = context.read<AppState>().normalizeToE164(_phoneCtrl.text.trim());
     final res = await supabase.auth.verifyOTP(
-      phone: _phoneCtrl.text.trim(),
+      phone: phone,
       token: _otpCtrl.text.trim(),
       type: OtpType.sms,
     ); // creates session if code is valid
