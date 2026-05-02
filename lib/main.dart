@@ -12,6 +12,7 @@ import 'menu_screen.dart';
 import 'config_screen.dart';
 import 'exceptions_screen.dart';
 import 'home_screen.dart';
+import 'app_settings_screen.dart';
 import 'start_screen.dart';
 import 'household_income_summary_screen.dart';
 import 'expenses_screen.dart';
@@ -156,6 +157,9 @@ class MyHomePage extends StatelessWidget {
       case 'exceptions':
         screen = exceptionsScreen();
         break;
+      case 'app settings':
+        screen = appSettingsScreen();
+        break;
       case 'expenses':
         screen = expensesScreen();
         break;
@@ -200,7 +204,13 @@ class MyHomePage extends StatelessWidget {
     ];
     // Pages that own their own padding/safe-area + draw their own floating
     // nav button instead of relying on the top CupertinoNavigationBar.
-    const fullBleedPages = {'home', 'menu', 'config', 'exceptions'};
+    const fullBleedPages = {
+      'home',
+      'menu',
+      'config',
+      'exceptions',
+      'app settings',
+    };
 
     return Consumer<AppState>(
       builder: (context, appState, child) {
