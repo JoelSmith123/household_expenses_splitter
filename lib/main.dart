@@ -11,6 +11,7 @@ import 'signin_screen.dart';
 import 'menu_screen.dart';
 import 'config_screen.dart';
 import 'exceptions_screen.dart';
+import 'home_screen.dart';
 import 'start_screen.dart';
 import 'household_income_summary_screen.dart';
 import 'expenses_screen.dart';
@@ -143,6 +144,9 @@ class MyHomePage extends StatelessWidget {
       case 'signin':
         screen = signinScreen();
         break;
+      case 'home':
+        screen = homeScreen();
+        break;
       case 'start':
         screen = startScreen();
         break;
@@ -188,16 +192,36 @@ class MyHomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     const flowPages = [
       'signin',
+      'home',
       'start',
       'expenses',
       'summary',
       'household income summary',
     ];
+    // Pages that own their own padding/safe-area + draw their own floating
+    // nav button instead of relying on the top CupertinoNavigationBar.
+    const fullBleedPages = {'home'};
+
     return Consumer<AppState>(
       builder: (context, appState, child) {
+        final isFullBleed = fullBleedPages.contains(appState.currentPage);
+
+        final pageContent = AnimatedSwitcher(
+          duration: const Duration(milliseconds: 500),
+          transitionBuilder: (Widget child, Animation<double> animation) {
+            return FadeTransition(opacity: animation, child: child);
+          },
+          child: SizedBox.expand(
+            child: Align(
+              alignment: Alignment.center,
+              child: _buildCurrentPage(appState),
+            ),
+          ),
+        );
+
         return CupertinoPageScaffold(
           backgroundColor: AppColors.cream,
-          navigationBar: appState.showNavigationBar
+          navigationBar: (!isFullBleed && appState.showNavigationBar)
               ? CupertinoNavigationBar(
                   leading: Builder(
                     builder: (BuildContext context) {
@@ -223,25 +247,12 @@ class MyHomePage extends StatelessWidget {
                   ),
                 )
               : null,
-          child: SafeArea(
-            minimum: const EdgeInsets.all(20.0),
-            child: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 500),
-              transitionBuilder:
-                  (Widget child, Animation<double> animation) {
-                    return FadeTransition(
-                      opacity: animation,
-                      child: child,
-                    );
-                  },
-              child: SizedBox.expand(
-                child: Align(
-                  alignment: Alignment.center,
-                  child: _buildCurrentPage(appState),
+          child: isFullBleed
+              ? pageContent
+              : SafeArea(
+                  minimum: const EdgeInsets.all(20.0),
+                  child: pageContent,
                 ),
-              ),
-            ),
-          ),
         );
       },
     );

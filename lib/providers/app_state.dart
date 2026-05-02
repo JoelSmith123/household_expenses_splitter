@@ -249,7 +249,7 @@ class AppState extends ChangeNotifier {
         currentUserName = name;
         if (currentHouseholdId != null) {
           await getData();
-          navigateToPage('start');
+          navigateToPage('home');
         } else {
           await checkPendingInvite();
         }
@@ -304,7 +304,7 @@ class AppState extends ChangeNotifier {
   Future<void> checkPendingInvite() async {
     if (currentHouseholdId != null) {
       await getData();
-      navigateToPage('start');
+      navigateToPage('home');
       return;
     }
 
@@ -378,7 +378,7 @@ class AppState extends ChangeNotifier {
       }
 
       await getData();
-      navigateToPage('start');
+      navigateToPage('home');
     } finally {
       isBusy = false;
       notifyListeners();
@@ -882,6 +882,7 @@ class AppState extends ChangeNotifier {
   void handleMenuButtonPressed(icon) {
     const flowPages = [
       'signin',
+      'home',
       'start',
       'expenses',
       'summary',
@@ -897,6 +898,17 @@ class AppState extends ChangeNotifier {
     } else {
       icon = CupertinoIcons.clear;
     }
+    notifyListeners();
+  }
+
+  void openMenu() {
+    previousPage = currentPage;
+    currentPage = 'menu';
+    notifyListeners();
+  }
+
+  void closeMenu() {
+    currentPage = previousPage.isNotEmpty ? previousPage : 'home';
     notifyListeners();
   }
 
