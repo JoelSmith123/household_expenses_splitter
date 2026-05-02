@@ -200,7 +200,7 @@ class MyHomePage extends StatelessWidget {
     ];
     // Pages that own their own padding/safe-area + draw their own floating
     // nav button instead of relying on the top CupertinoNavigationBar.
-    const fullBleedPages = {'home'};
+    const fullBleedPages = {'home', 'menu'};
 
     return Consumer<AppState>(
       builder: (context, appState, child) {
