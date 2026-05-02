@@ -200,7 +200,7 @@ class MyHomePage extends StatelessWidget {
     ];
     // Pages that own their own padding/safe-area + draw their own floating
     // nav button instead of relying on the top CupertinoNavigationBar.
-    const fullBleedPages = {'home', 'menu'};
+    const fullBleedPages = {'home', 'menu', 'config', 'exceptions'};
 
     return Consumer<AppState>(
       builder: (context, appState, child) {
@@ -225,17 +225,13 @@ class MyHomePage extends StatelessWidget {
               ? CupertinoNavigationBar(
                   leading: Builder(
                     builder: (BuildContext context) {
-                      IconData icon;
-                      if (flowPages.contains(appState.currentPage)) {
-                        icon = CupertinoIcons.bars;
-                      } else if (appState.currentPage == 'menu') {
-                        icon = CupertinoIcons.clear;
-                      } else if (appState.currentPage == 'config' ||
-                          appState.currentPage == 'exceptions') {
-                        icon = CupertinoIcons.back;
-                      } else {
-                        icon = CupertinoIcons.clear;
-                      }
+                      // Full-bleed pages (home, menu, config, exceptions,
+                      // app settings) draw their own floating navigation
+                      // button, so the only remaining icons here are the
+                      // menu opener on flow pages and the close fallback.
+                      final icon = flowPages.contains(appState.currentPage)
+                          ? CupertinoIcons.bars
+                          : CupertinoIcons.clear;
                       return CupertinoButton(
                         padding: EdgeInsets.zero,
                         child: Icon(icon),
