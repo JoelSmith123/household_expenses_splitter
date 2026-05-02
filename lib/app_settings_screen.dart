@@ -8,66 +8,74 @@ import 'widgets/floating_nav_button.dart';
 Widget appSettingsScreen() {
   return Consumer<AppState>(
     builder: (context, appState, _) {
-      return SafeArea(
-        child: Stack(
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.lg - 4, // 20
-                AppSpacing.lg,
-                AppSpacing.lg - 4, // 20
-                120, // clearance for floating back button
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('APPEARANCE', style: AppText.sectionLabel()),
-                  const SizedBox(height: AppSpacing.sm),
-                  _SettingsCard(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.md,
-                        vertical: 14,
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(
-                            CupertinoIcons.sun_max,
-                            color: CupertinoColors.systemYellow,
-                          ),
-                          const SizedBox(width: AppSpacing.sm),
-                          Expanded(
-                            child: Text(
-                              'Dark mode',
-                              style: AppText.cardItemTitle(),
+      return Stack(
+        children: [
+          SafeArea(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.fromLTRB(
+                      AppSpacing.lg - 4, // 20
+                      AppSpacing.lg,
+                      AppSpacing.lg - 4, // 20
+                      120, // clearance for floating back button
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('APPEARANCE', style: AppText.sectionLabel()),
+                        const SizedBox(height: AppSpacing.sm),
+                        _SettingsCard(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: AppSpacing.md,
+                              vertical: 14,
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(
+                                  CupertinoIcons.sun_max,
+                                  color: CupertinoColors.systemYellow,
+                                ),
+                                const SizedBox(width: AppSpacing.sm),
+                                Expanded(
+                                  child: Text(
+                                    'Dark mode',
+                                    style: AppText.cardItemTitle(),
+                                  ),
+                                ),
+                                CupertinoSwitch(
+                                  value: appState.brightnessModeSwitchValue,
+                                  activeTrackColor: AppColors.deepGreen,
+                                  onChanged: (_) =>
+                                      appState.toggleBrightnessMode(),
+                                ),
+                                const SizedBox(width: AppSpacing.sm),
+                                const Icon(
+                                  CupertinoIcons.moon,
+                                  color: AppColors.muted,
+                                ),
+                              ],
                             ),
                           ),
-                          CupertinoSwitch(
-                            value: appState.brightnessModeSwitchValue,
-                            activeTrackColor: AppColors.deepGreen,
-                            onChanged: (_) => appState.toggleBrightnessMode(),
-                          ),
-                          const SizedBox(width: AppSpacing.sm),
-                          const Icon(
-                            CupertinoIcons.moon,
-                            color: AppColors.muted,
-                          ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-            Positioned(
-              left: AppSpacing.lg - 4, // 20
-              bottom: 28,
-              child: FloatingNavButton.back(
-                onPressed: () => appState.navigateToPage('menu'),
-              ),
+          ),
+          Positioned(
+            left: AppSpacing.lg - 4, // 20
+            bottom: AppSpacing.lg - 4, // 20
+            child: FloatingNavButton.back(
+              onPressed: () => appState.navigateToPage('menu'),
             ),
-          ],
-        ),
+          ),
+        ],
       );
     },
   );

@@ -210,6 +210,10 @@ class MyHomePage extends StatelessWidget {
       'config',
       'exceptions',
       'app settings',
+      'start',
+      'household income summary',
+      'expenses',
+      'summary',
     };
 
     return Consumer<AppState>(

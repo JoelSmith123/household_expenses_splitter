@@ -14,10 +14,10 @@ Widget homeScreen() {
       final data = _buildHomeData(appState);
       final shares = _computeShares(data);
 
-      return SafeArea(
-        child: Stack(
-          children: [
-            Column(
+      return Stack(
+        children: [
+          SafeArea(
+            child: Column(
               children: [
                 _AppBar(householdName: data.householdName),
                 Expanded(
@@ -42,15 +42,15 @@ Widget homeScreen() {
                 ),
               ],
             ),
-            Positioned(
-              left: AppSpacing.lg - 4, // 20
-              bottom: 28,
-              child: FloatingNavButton.menu(
-                onPressed: appState.openMenu,
-              ),
+          ),
+          Positioned(
+            left: AppSpacing.lg - 4, // 20
+            bottom: AppSpacing.lg - 4, // 20
+            child: FloatingNavButton.menu(
+              onPressed: appState.openMenu,
             ),
-          ],
-        ),
+          ),
+        ],
       );
     },
   );

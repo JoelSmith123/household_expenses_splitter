@@ -8,106 +8,113 @@ import 'widgets/floating_nav_button.dart';
 Widget configScreen() {
   return Consumer<AppState>(builder: (context, appState, child) {
     final fieldText = TextEditingController();
-    return SafeArea(
-      child: Stack(
-        children: [
-          SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(
-              AppSpacing.lg - 4, // 20
-              AppSpacing.lg,
-              AppSpacing.lg - 4, // 20
-              120, // clearance for floating back button
-            ),
-            child: Column(
-              children: <Widget>[
-                const Text('Customize Housemates'),
-                for (var housemate in appState.housemates)
-                  Row(
+    return Stack(
+      children: [
+        SafeArea(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.lg - 4, // 20
+                    AppSpacing.lg,
+                    AppSpacing.lg - 4, // 20
+                    120, // clearance for floating back button
+                  ),
+                  child: Column(
                     children: <Widget>[
-                      Text(housemate['name']),
-                      CupertinoButton(
-                        padding: EdgeInsets.zero,
-                        child: const Icon(CupertinoIcons.delete),
-                        onPressed: () {
-                          appState.housemates.remove(housemate);
-                        },
+                      const Text('Customize Housemates'),
+                      for (var housemate in appState.housemates)
+                        Row(
+                          children: <Widget>[
+                            Text(housemate['name']),
+                            CupertinoButton(
+                              padding: EdgeInsets.zero,
+                              child: const Icon(CupertinoIcons.delete),
+                              onPressed: () {
+                                appState.housemates.remove(housemate);
+                              },
+                            ),
+                          ],
+                        ),
+                      Row(
+                        children: <Widget>[
+                          Expanded(
+                            child: CupertinoTextField(
+                              controller: fieldText,
+                              keyboardType: TextInputType.text,
+                              placeholder: 'Enter a new housemate\'s name',
+                            ),
+                          ),
+                          CupertinoButton(
+                            padding: EdgeInsets.zero,
+                            child: const Icon(CupertinoIcons.plus),
+                            onPressed: () {
+                              appState.housemates.add({
+                                'name': fieldText.text,
+                                'netIncome': 0,
+                                'percentageOfHouseholdIncome': 0,
+                              });
+                              fieldText.clear();
+                            },
+                          ),
+                        ],
+                      ),
+                      const Padding(
+                        padding: EdgeInsets.only(top: 60.0),
+                        child: Text('Customize Expenses'),
+                      ),
+                      for (var expense in appState.expenses)
+                        Row(
+                          children: <Widget>[
+                            Text(expense['name']),
+                            CupertinoButton(
+                              padding: EdgeInsets.zero,
+                              child: const Icon(CupertinoIcons.delete),
+                              onPressed: () {
+                                appState.expenses.remove(expense);
+                              },
+                            ),
+                          ],
+                        ),
+                      Row(
+                        children: <Widget>[
+                          Expanded(
+                            child: CupertinoTextField(
+                              controller: fieldText,
+                              keyboardType: TextInputType.text,
+                              placeholder: 'Enter a new expense\'s name',
+                            ),
+                          ),
+                          CupertinoButton(
+                            padding: EdgeInsets.zero,
+                            child: const Icon(CupertinoIcons.plus),
+                            onPressed: () {
+                              appState.expenses.add({
+                                'name': fieldText.text,
+                                'amount': 0,
+                              });
+                              fieldText.clear();
+                            },
+                          ),
+                        ],
                       ),
                     ],
                   ),
-                Row(
-                  children: <Widget>[
-                    Expanded(
-                      child: CupertinoTextField(
-                        controller: fieldText,
-                        keyboardType: TextInputType.text,
-                        placeholder: 'Enter a new housemate\'s name',
-                      ),
-                    ),
-                    CupertinoButton(
-                      padding: EdgeInsets.zero,
-                      child: const Icon(CupertinoIcons.plus),
-                      onPressed: () {
-                        appState.housemates.add({
-                          'name': fieldText.text,
-                          'netIncome': 0,
-                          'percentageOfHouseholdIncome': 0,
-                        });
-                        fieldText.clear();
-                      },
-                    ),
-                  ],
                 ),
-                const Padding(
-                  padding: EdgeInsets.only(top: 60.0),
-                  child: Text('Customize Expenses'),
-                ),
-                for (var expense in appState.expenses)
-                  Row(
-                    children: <Widget>[
-                      Text(expense['name']),
-                      CupertinoButton(
-                        padding: EdgeInsets.zero,
-                        child: const Icon(CupertinoIcons.delete),
-                        onPressed: () {
-                          appState.expenses.remove(expense);
-                        },
-                      ),
-                    ],
-                  ),
-                Row(
-                  children: <Widget>[
-                    Expanded(
-                      child: CupertinoTextField(
-                        controller: fieldText,
-                        keyboardType: TextInputType.text,
-                        placeholder: 'Enter a new expense\'s name',
-                      ),
-                    ),
-                    CupertinoButton(
-                      padding: EdgeInsets.zero,
-                      child: const Icon(CupertinoIcons.plus),
-                      onPressed: () {
-                        appState.expenses.add({
-                          'name': fieldText.text,
-                          'amount': 0,
-                        });
-                        fieldText.clear();
-                      },
-                    ),
-                  ],
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
-          Positioned(
-            left: AppSpacing.lg - 4, // 20
-            bottom: 28,
-            child: FloatingNavButton.back(
-              onPressed: () => appState.navigateToPage('menu'),
-            ),
+        ),
+        Positioned(
+          left: AppSpacing.lg - 4, // 20
+          bottom: AppSpacing.lg - 4, // 20
+          child: FloatingNavButton.back(
+            onPressed: () => appState.navigateToPage('menu'),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   });
 }

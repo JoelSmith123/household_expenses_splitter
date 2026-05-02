@@ -15,18 +15,22 @@ Widget exceptionsScreen() {
       exceptions = appState.exceptions;
     }
 
-    return SafeArea(
-      child: Stack(
-        children: [
-          SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(
-              AppSpacing.lg - 4, // 20
-              AppSpacing.lg,
-              AppSpacing.lg - 4, // 20
-              120, // clearance for floating back button
-            ),
-            child: Column(
-              children: <Widget>[
+    return Stack(
+      children: [
+        SafeArea(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.lg - 4, // 20
+                    AppSpacing.lg,
+                    AppSpacing.lg - 4, // 20
+                    120, // clearance for floating back button
+                  ),
+                  child: Column(
+                    children: <Widget>[
           Padding(
             padding: const EdgeInsets.only(top: 10.0, bottom: 30.0),
             child: Row(
@@ -287,18 +291,21 @@ Widget exceptionsScreen() {
               ),
             ),
           ),
-              ],
-            ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ),
-          Positioned(
-            left: AppSpacing.lg - 4, // 20
-            bottom: 28,
-            child: FloatingNavButton.back(
-              onPressed: () => appState.navigateToPage('menu'),
-            ),
+        ),
+        Positioned(
+          left: AppSpacing.lg - 4, // 20
+          bottom: AppSpacing.lg - 4, // 20
+          child: FloatingNavButton.back(
+            onPressed: () => appState.navigateToPage('menu'),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   });
 }

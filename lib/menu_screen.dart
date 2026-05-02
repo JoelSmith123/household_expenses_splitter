@@ -21,10 +21,10 @@ const List<_MenuItem> _menuItems = [
 Widget menuScreen() {
   return Consumer<AppState>(
     builder: (context, appState, _) {
-      return SafeArea(
-        child: Stack(
-          children: [
-            Column(
+      return Stack(
+        children: [
+          SafeArea(
+            child: Column(
               children: [
                 // Spacer matches the home screen's app-bar height so the
                 // visual rhythm stays consistent when toggling between them.
@@ -63,15 +63,15 @@ Widget menuScreen() {
                 ),
               ],
             ),
-            Positioned(
-              left: AppSpacing.lg - 4, // 20
-              bottom: 28,
-              child: FloatingNavButton.close(
-                onPressed: appState.closeMenu,
-              ),
+          ),
+          Positioned(
+            left: AppSpacing.lg - 4, // 20
+            bottom: AppSpacing.lg - 4, // 20
+            child: FloatingNavButton.close(
+              onPressed: appState.closeMenu,
             ),
-          ],
-        ),
+          ),
+        ],
       );
     },
   );
