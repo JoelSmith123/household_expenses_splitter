@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import 'providers/app_state.dart';
 import 'exceptions_category_dropdown.dart';
 import 'exceptions_save_confirmation.dart';
+import 'styles/app_styles.dart';
+import 'widgets/floating_nav_button.dart';
 
 Widget exceptionsScreen() {
   return Consumer<AppState>(builder: (context, appState, child) {
@@ -13,9 +15,22 @@ Widget exceptionsScreen() {
       exceptions = appState.exceptions;
     }
 
-    return SizedBox.expand(
-      child: Column(
-        children: <Widget>[
+    return Stack(
+      children: [
+        SafeArea(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.lg - 4, // 20
+                    AppSpacing.lg,
+                    AppSpacing.lg - 4, // 20
+                    120, // clearance for floating back button
+                  ),
+                  child: Column(
+                    children: <Widget>[
           Padding(
             padding: const EdgeInsets.only(top: 10.0, bottom: 30.0),
             child: Row(
@@ -276,9 +291,21 @@ Widget exceptionsScreen() {
               ),
             ),
           ),
-          const Spacer(),
-        ],
-      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        Positioned(
+          left: AppSpacing.lg - 4, // 20
+          bottom: AppSpacing.lg - 4, // 20
+          child: FloatingNavButton.back(
+            onPressed: () => appState.navigateToPage('menu'),
+          ),
+        ),
+      ],
     );
   });
 }
