@@ -28,7 +28,10 @@ Widget configScreen() {
                       for (var housemate in appState.housemates)
                         Row(
                           children: <Widget>[
-                            Text(housemate['name']),
+                            Text((housemate['display_name'] ??
+                                    housemate['name'] ??
+                                    'Unnamed')
+                                .toString()),
                             CupertinoButton(
                               padding: EdgeInsets.zero,
                               child: const Icon(CupertinoIcons.delete),
@@ -68,7 +71,10 @@ Widget configScreen() {
                       for (var expense in appState.expenses)
                         Row(
                           children: <Widget>[
-                            Text(expense['name']),
+                            Text((expense['description'] ??
+                                    expense['name'] ??
+                                    'Unnamed')
+                                .toString()),
                             CupertinoButton(
                               padding: EdgeInsets.zero,
                               child: const Icon(CupertinoIcons.delete),
