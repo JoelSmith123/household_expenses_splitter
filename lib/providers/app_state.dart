@@ -764,9 +764,29 @@ class AppState extends ChangeNotifier {
     }
     final data = await supabase
         .from('exceptions')
-        .select()
+        .select('id, user_id, category_id, exception_type, percent,'
+            ' household_id, users(display_name), categories(name)')
         .eq('household_id', currentHouseholdId!);
-    exceptions = data;
+    // Project rows into the legacy shape the exceptions UI expects:
+    // `name`, `category`, `type` keys plus a numeric `percent`.
+    exceptions = (data as List).map<Map<String, dynamic>>((row) {
+      final user = row['users'] as Map?;
+      final category = row['categories'] as Map?;
+      final rawPercent = row['percent'];
+      final percent = rawPercent is num
+          ? rawPercent
+          : double.tryParse(rawPercent?.toString() ?? '') ?? 0;
+      return {
+        'id': row['id'],
+        'user_id': row['user_id'],
+        'category_id': row['category_id'],
+        'household_id': row['household_id'],
+        'name': user?['display_name'],
+        'category': category?['name'],
+        'type': row['exception_type'],
+        'percent': percent,
+      };
+    }).toList();
   }
 
   // unsaved exceptions have an additional "edited" key to track if they have been edited for UI purposes. Separated from the regular exceptions to allow for reverting changes.
