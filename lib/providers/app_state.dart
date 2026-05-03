@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -60,6 +62,7 @@ class AppState extends ChangeNotifier {
   // dispose controllers
   @override
   void dispose() {
+    _authSub?.cancel();
     for (var controller in housematesNetIncomeControllers) {
       controller.dispose();
     }
@@ -74,13 +77,66 @@ class AppState extends ChangeNotifier {
   //
 
   bool supabaseInitCompleted = false;
+  StreamSubscription<AuthState>? _authSub;
+
   void setSupabaseReady(bool isReady) {
+    // Flip the gate before invoking _setupAuthListener — the sync session
+    // check inside it calls handleSignedIn, which short-circuits on
+    // !supabaseInitCompleted.
+    supabaseInitCompleted = isReady;
     if (isReady) {
       supabase = Supabase.instance.client;
+      _setupAuthListener();
       _init();
     }
-    supabaseInitCompleted = isReady;
     notifyListeners();
+  }
+
+  void _setupAuthListener() {
+    // Fast path: supabase_flutter restores any persisted session inside
+    // Supabase.initialize, so currentSession is already populated by the
+    // time we get here. Mark signed-in and kick off the post-signin flow
+    // synchronously so the logo screen doesn't briefly route through
+    // signin while waiting on an event that may never fire.
+    final initialSession = supabase.auth.currentSession;
+    if (initialSession != null) {
+      signedIn = true;
+      // Unawaited: handleSignedIn navigates when the profile load completes.
+      handleSignedIn();
+    }
+
+    // React to subsequent auth events: a refresh that completes after the
+    // sync check, a server-side sign-out, or an account deletion.
+    _authSub = supabase.auth.onAuthStateChange.listen(_handleAuthChange);
+  }
+
+  void _handleAuthChange(AuthState data) {
+    final session = data.session;
+    switch (data.event) {
+      case AuthChangeEvent.signedIn:
+      case AuthChangeEvent.tokenRefreshed:
+        // signedIn: explicit sign-in (e.g. OTP verify) or, on some SDK
+        // paths, the event emitted after a startup refresh of a stored
+        // session. tokenRefreshed: a background refresh succeeded; if
+        // we weren't signed in yet (because the access token was
+        // already expired when the sync check ran), treat it the same
+        // way. signedIn flips false on resetToSigninFlow, so the guard
+        // also lets a fresh sign-in after sign-out re-run
+        // handleSignedIn. The OTP flow calls setSignedIn(true)
+        // directly; the guard prevents double handling.
+        if (session != null && !signedIn) {
+          setSignedIn(true);
+          handleSignedIn();
+        }
+        break;
+      case AuthChangeEvent.signedOut:
+        if (signedIn) {
+          resetToSigninFlow();
+        }
+        break;
+      default:
+        break;
+    }
   }
 
   void setInitError(Object e, StackTrace stackTrace) {
@@ -98,15 +154,12 @@ class AppState extends ChangeNotifier {
 
   void initializeView() {
     // 2s delay so the logo screen has time to render before routing.
-    Future.delayed(const Duration(seconds: 2), () async {
-      // supabase_flutter persists sessions across launches; honor that
-      // instead of unconditionally sending the user back to signin.
-      final session = supabase.auth.currentSession;
-      if (session != null) {
-        setSignedIn(true);
-        await handleSignedIn();
-        return;
-      }
+    Future.delayed(const Duration(seconds: 2), () {
+      // The sync session check in _setupAuthListener (and any signedIn
+      // event that fires during the logo delay, e.g. a late refresh) has
+      // already routed us into the post-signin flow. Only fall through
+      // to signin when no session was restored or refreshed.
+      if (signedIn) return;
       navigateToPage('signin');
     });
   }
@@ -119,6 +172,15 @@ class AppState extends ChangeNotifier {
   void setSignedIn(bool newSignedInStatus) async {
     signedIn = newSignedInStatus;
     notifyListeners();
+  }
+
+  Future<void> signOut() async {
+    // SignOutScope.local revokes this device's refresh token only, not
+    // the user's sessions on any other devices they own — matches the
+    // UX expectation for a Settings "Sign out" button. The
+    // onAuthStateChange listener fires `signedOut` and runs
+    // resetToSigninFlow.
+    await supabase.auth.signOut(scope: SignOutScope.local);
   }
 
   String? currentUserName;
@@ -397,7 +459,8 @@ class AppState extends ChangeNotifier {
       }).eq('id', pendingInvite!.id);
 
       await supabase.auth.signOut();
-      resetToSigninFlow();
+      // The onAuthStateChange listener fires `signedOut` and calls
+      // resetToSigninFlow itself; no explicit call needed here.
     } finally {
       isBusy = false;
       notifyListeners();
