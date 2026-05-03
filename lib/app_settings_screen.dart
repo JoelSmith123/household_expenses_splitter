@@ -61,6 +61,36 @@ Widget appSettingsScreen() {
                             ),
                           ),
                         ),
+                        const SizedBox(height: AppSpacing.lg),
+                        Text('ACCOUNT', style: AppText.sectionLabel()),
+                        const SizedBox(height: AppSpacing.sm),
+                        _SettingsCard(
+                          child: CupertinoButton(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: AppSpacing.md,
+                              vertical: 14,
+                            ),
+                            onPressed: () =>
+                                _confirmSignOut(context, appState),
+                            child: Row(
+                              children: [
+                                const Icon(
+                                  CupertinoIcons.square_arrow_right,
+                                  color: AppColors.balanceNegative,
+                                ),
+                                const SizedBox(width: AppSpacing.sm),
+                                Expanded(
+                                  child: Text(
+                                    'Sign out',
+                                    style: AppText.cardItemTitle().copyWith(
+                                      color: AppColors.balanceNegative,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -79,6 +109,32 @@ Widget appSettingsScreen() {
       );
     },
   );
+}
+
+Future<void> _confirmSignOut(BuildContext context, AppState appState) async {
+  final shouldSignOut = await showCupertinoDialog<bool>(
+    context: context,
+    builder: (dialogContext) => CupertinoAlertDialog(
+      title: const Text('Sign out?'),
+      content: const Text(
+        "You'll need to verify your phone number to sign back in.",
+      ),
+      actions: [
+        CupertinoDialogAction(
+          onPressed: () => Navigator.of(dialogContext).pop(false),
+          child: const Text('Cancel'),
+        ),
+        CupertinoDialogAction(
+          isDestructiveAction: true,
+          onPressed: () => Navigator.of(dialogContext).pop(true),
+          child: const Text('Sign out'),
+        ),
+      ],
+    ),
+  );
+  if (shouldSignOut == true) {
+    await appState.signOut();
+  }
 }
 
 class _SettingsCard extends StatelessWidget {
